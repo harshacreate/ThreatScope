@@ -7,6 +7,8 @@ services:
       - "127.0.0.1:8103:8000"
     environment:
       THREATSCOPE_ZAP_ENABLED: "1"
+      # Set to require a bearer token on /api/ (see .env.example)
+      THREATSCOPE_API_TOKEN: ${THREATSCOPE_API_TOKEN:-}
     depends_on:
       demo-target:
         condition: service_healthy
@@ -18,7 +20,9 @@ services:
       - no-new-privileges:true
     mem_limit: 768m
     restart: unless-stopped
-    networks: [lab]
+    # "web" only exists so the loopback port mapping above works; the scanner
+    # targets stay on the internal "lab" network with no route out.
+    networks: [lab, web]
 
   demo-target:
     image: threatscope:local
@@ -64,3 +68,4 @@ services:
 networks:
   lab:
     internal: true
+  web: {}

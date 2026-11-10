@@ -4,7 +4,7 @@
 
 Design Project III · Semester V (2025–26) · B.Tech, specialisation in Cyber Security, DISC, Hindustan Institute of Technology and Science, Chennai · by **Malepati Sree Harsha**
 
-![tests](https://img.shields.io/badge/tests-14%20passing-2ea44f) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
+![tests](https://img.shields.io/badge/tests-17%20passing-2ea44f) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
 
 ![ThreatScope SOC console](docs/screenshots/01-soc-overview.png)
 
@@ -59,6 +59,14 @@ Perfect scores reflect simple synthetic noise and rules written for these scenar
 | `data_exfil` | T1041 | ≥ 5 MB transferred by one source |
 | `suspicious_process` | T1059 | Encoded PowerShell, curl/wget, reverse shells, shells spawned by web servers |
 
+The Sigma subset covers SSH failures, firewall port scans, scan-then-brute-force
+correlation, and selected Sysmon process events. It is validated in CI with the
+pinned Sigma CLI. Time-window and field-mapping differences are documented in
+[Sigma representations](docs/SIGMA.md). The Python engine adds ordered
+firewall → authentication → web evidence trails keyed by source IP, with at
+least 5 MB deduplicated web egress following brute force inside the 30-minute
+chain window. It preserves the underlying per-rule alerts.
+
 ## Architecture and isolation
 
 ![Deployment](docs/diagrams/deployment.png)
@@ -99,15 +107,16 @@ Scan targets are constants in code and the lab network is internal-only. The pla
 | [Viva questions](report/Viva_Questions.md) | Likely examiner / interviewer questions with answers |
 | [Portfolio copy](report/Portfolio_Copy.md) | GitHub description, LinkedIn and resume text |
 | [Real-data evaluation](docs/REAL_DATA.md) | Dataset version, license caveat, schema mapping, results, and reproduction command |
+| [Sigma representations](docs/SIGMA.md) | Supported subset, validation, fixture comparison, and semantic differences |
 | [Showcase page](docs/index.html) | Landing page for GitHub Pages (Settings → Pages → `main` / `docs`) |
 | [Security policy](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) | Threat model, disclosure process, workflow, history |
 
 ## Limitations and roadmap
 
 - The pinned public sample has no benign event labels; false-alert rates cannot be estimated, and the suspicious_process rule missed its one documented PowerShell scenario.
-- Single-source rules. Next: cross-source actor correlation (scan → brute force → exfil).
+- Correlation currently covers ordered scan → brute-force → at least 5 MB of deduplicated web egress within 30 minutes when the source IP is present; other rule families are not correlated yet.
 - Shared token, no roles. Next: per-analyst accounts and case management.
-- Rules in Python. Next: Sigma rules tested with the same benchmark harness.
+- The Sigma representation is a documented subset; rolling-window Python behavior and Sigma backend semantics differ. See [Sigma representations](docs/SIGMA.md).
 
 ## Repository layout
 

@@ -244,3 +244,106 @@ def run_all(auth: List[AuthEvent], fw: List[FwEvent], web: List[WebEvent],
     alerts += detect_exfil(web)
     alerts += detect_suspicious_process(proc or [])
     return alerts
+
+
+def correlate_alerts(alerts: List[Alert], web_events: Optional[List[WebEvent]] = None,
+                     window_seconds: int = 1800) -> List[Dict]:
+    """Join scan -> SSH brute-force -> 5 MB web-egress evidence by source IP.
+
+    The scan and brute-force stages use their existing rule alert timestamps.
+    The final stage sums deduplicated raw web events after brute force. The
+    entire ordered chain, and the post-brute-force egress interval, must fit
+    inside an inclusive time window. Per-rule alerts remain unchanged.
+    """
+    if not isinstance(window_seconds, int) or isinstance(window_seconds, bool) \
+            or not 1 <= window_seconds <= 86_400:
+        raise ValueError("window_seconds must be an integer from 1 to 86400")
+
+    groups: Dict[str, Dict[str, Dict[tuple, Dict]]] = defaultdict(
+        lambda: defaultdict(dict))
+    for alert in alerts:
+        if alert.rule not in {"port_scan", "brute_force_login"} \
+                or not isinstance(alert.source, str) or not alert.source.strip():
+            continue
+        try:
+            timestamp = datetime.strptime(alert.time, "%Y-%m-%d %H:%M:%S")
+        except (TypeError, ValueError):
+            continue
+        key = (alert.rule, alert.time, alert.evidence, alert.title)
+        groups[alert.source.strip()][alert.rule][key] = {
+            "rule": alert.rule, "time": alert.time, "timestamp": timestamp,
+            "title": alert.title, "evidence": alert.evidence,
+        }
+
+    web_by_actor: Dict[str, Dict[tuple, WebEvent]] = defaultdict(dict)
+    for event in web_events or []:
+        if not isinstance(event.src_ip, str) or not event.src_ip.strip() or event.bytes < 0:
+            continue
+        key = (event.ts, event.src_ip.strip(), event.method, event.path, event.status, event.bytes)
+        web_by_actor[event.src_ip.strip()][key] = event
+
+    output = []
+    for actor in sorted(groups):
+        scans = sorted(groups[actor].get("port_scan", {}).values(),
+                       key=lambda row: (row["timestamp"], row["evidence"]))
+        bursts = sorted(groups[actor].get("brute_force_login", {}).values(),
+                        key=lambda row: (row["timestamp"], row["evidence"]))
+        actor_web = sorted(web_by_actor.get(actor, {}).values(), key=lambda event: event.ts)
+        candidates = []
+        for scan in scans:
+            for burst in bursts:
+                scan_to_burst = (burst["timestamp"] - scan["timestamp"]).total_seconds()
+                if scan_to_burst < 0 or scan_to_burst > window_seconds:
+                    continue
+                lower, upper = burst["timestamp"], burst["timestamp"] + timedelta(seconds=window_seconds)
+                total = 0
+                selected_events = []
+                for event in actor_web:
+                    if event.ts < lower:
+                        continue
+                    if event.ts > upper:
+                        break
+                    total += event.bytes
+                    selected_events.append(event)
+                    if total >= 5_000_000:
+                        break
+                if total < 5_000_000:
+                    continue
+                last_event = selected_events[-1]
+                if (last_event.ts - scan["timestamp"]).total_seconds() > window_seconds:
+                    continue
+                event_evidence = [{"time": event.ts.isoformat(sep=" "),
+                                   "method": event.method, "path": event.path,
+                                   "status": event.status, "bytes": event.bytes}
+                                  for event in selected_events[:24]]
+                if len(selected_events) > 24:
+                    last = selected_events[-1]
+                    event_evidence.append({"time": last.ts.isoformat(sep=" "),
+                                           "method": last.method, "path": last.path,
+                                           "status": last.status, "bytes": last.bytes})
+                egress = {
+                    "rule": "data_exfil", "time": last_event.ts.strftime("%Y-%m-%d %H:%M:%S"),
+                    "timestamp": last_event.ts, "title": "Web egress threshold",
+                    "evidence": f"{total:,} bytes across {len(selected_events)} deduplicated web events after SSH brute force",
+                    "events": event_evidence, "event_count": len(selected_events),
+                    "omitted_event_count": max(0, len(selected_events) - len(event_evidence)),
+                }
+                candidates.append((scan, burst, egress))
+        if not candidates:
+            continue
+        scan, burst, egress = min(candidates, key=lambda rows: (
+            rows[2]["timestamp"], rows[0]["timestamp"], rows[1]["timestamp"]))
+        evidence = [
+            {"source_type": "firewall", **{key: scan[key] for key in ("rule", "time", "title", "evidence")}},
+            {"source_type": "authentication", **{key: burst[key] for key in ("rule", "time", "title", "evidence")}},
+            {"source_type": "web", **{key: egress[key] for key in (
+                "rule", "time", "title", "evidence", "events", "event_count", "omitted_event_count")}},
+        ]
+        output.append({
+            "type": "multi_source_sequence", "actor_key": "source_ip", "actor": actor,
+            "first_seen": scan["time"], "last_seen": egress["time"],
+            "window_seconds": window_seconds,
+            "stages": ["port_scan", "brute_force_login", "data_exfil"],
+            "evidence": evidence,
+        })
+    return output

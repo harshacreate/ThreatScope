@@ -1,0 +1,2 @@
+sigma-cli==1.0.6
+PySigma==0.11.23

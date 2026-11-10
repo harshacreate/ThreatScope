@@ -1,0 +1,38 @@
+title: ThreatScope Windows Suspicious Process Execution
+id: 22ebea3f-8097-5995-acc9-12660a4041e8
+name: threatscope_windows_suspicious_process
+status: test
+description: Matches encoded PowerShell or a command shell launched by a web-server process in Sysmon process-creation telemetry.
+author: harshacreate
+date: 2026/11/11
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  encoded_powershell:
+    Image|endswith: '\\powershell.exe'
+    CommandLine|contains:
+      - ' -enc '
+      - ' -encodedcommand '
+  web_shell:
+    ParentImage|endswith:
+      - '\\nginx.exe'
+      - '\\httpd.exe'
+      - '\\apache.exe'
+    Image|endswith:
+      - '\\cmd.exe'
+      - '\\powershell.exe'
+  condition: encoded_powershell or web_shell
+fields:
+  - Computer
+  - User
+  - ParentImage
+  - Image
+  - CommandLine
+falsepositives:
+  - Authorized automation using encoded PowerShell
+level: high
+tags:
+  - attack.execution
+  - attack.t1059
+  - attack.t1059.001

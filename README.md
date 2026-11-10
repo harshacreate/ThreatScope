@@ -4,7 +4,7 @@
 
 Design Project III · Semester V (2025–26) · B.Tech, specialisation in Cyber Security, DISC, Hindustan Institute of Technology and Science, Chennai · by **Malepati Sree Harsha**
 
-![tests](https://img.shields.io/badge/tests-13%20passing-2ea44f) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
+![tests](https://img.shields.io/badge/tests-14%20passing-2ea44f) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
 
 ![ThreatScope SOC console](docs/screenshots/01-soc-overview.png)
 
@@ -12,7 +12,21 @@ Design Project III · Semester V (2025–26) · B.Tech, specialisation in Cyber 
 
 ThreatScope parses authentication, firewall, web and process logs plus packet captures. It raises **MITRE ATT&CK-mapped alerts** with evidence and response playbooks, and runs **TShark, Suricata, Nmap and OWASP ZAP** inside an isolated lab. Its research contribution is a **ground-truth benchmark**: every rule is scored against injected incidents over 25 seeds, with threshold sweeps that show where each rule starts to fail.
 
-## Key results (measured)
+## Real-data results
+
+OTRF Security-Datasets (Mordor), atomic Windows execution, dataset SDWIN-190518182022 at upstream commit d9d40ef123d2c87d5d3df28c96bcab4f0faccc87. The sample contains 2,067 events and documents one Local PowerShell Execution scenario. It has no event-level benign/malicious labels or benign scenario split.
+
+| Rule | Hits | Misses | False alerts |
+|---|---:|---:|---:|
+| brute_force_login | N/A | N/A | N/A |
+| impossible_travel | N/A | N/A | N/A |
+| port_scan | N/A | N/A | N/A |
+| data_exfil | N/A | N/A | N/A |
+| suspicious_process | **0** | **1** | N/A |
+
+The existing suspicious_process rule missed the documented encoded PowerShell scenario. False alerts are not estimable without benign labels; the other rules have no applicable labeled events. The pinned repository LICENSE is MIT, while its README also contains a GPL-3.0 reference; the archive is not committed. See [Real-data evaluation](docs/REAL_DATA.md) for field mapping, provenance, license caveat, and exact reproduction command.
+
+## Synthetic benchmark results (measured)
 
 | Result | Value |
 |---|---|
@@ -20,7 +34,7 @@ ThreatScope parses authentication, firewall, web and process logs plus packet ca
 | Ground truth over 25 seeds (default thresholds) | **150 TP · 0 FP · 0 FN** |
 | Safe threshold bands | brute force **3–16** failures / 120 s · port scan **5–28** ports / 60 s |
 | Real tools on the bundled PCAP / lab | TShark 62 packets · Suricata 3 alerts · Nmap 1 open port · ZAP 16 passive findings |
-| Automated tests | **13 / 13 passing** |
+| Automated tests | **14 / 14 passing** |
 | Full dashboard call (parse + 5 rules + TShark + Suricata) | p50 126.9 ms · p95 143.5 ms |
 
 | Rule | TP | FP | FN | Precision | Recall |
@@ -33,7 +47,7 @@ ThreatScope parses authentication, firewall, web and process logs plus packet ca
 
 ![Threshold sweep](docs/diagrams/chart-threshold-sweep.png)
 
-Perfect scores reflect simple synthetic noise and rules written for these scenarios. The sweeps are the informative part: they show the thresholds at which benign noise starts to fire, and where an attack slips under the rule.
+Perfect scores reflect simple synthetic noise and rules written for these scenarios. The sweeps show the thresholds at which benign noise starts to fire, and where an injected attack slips under the rule. They are separate from the real-data scenario result above.
 
 ## Detections
 
@@ -64,7 +78,7 @@ Optional authentication: set `THREATSCOPE_API_TOKEN` (see `.env.example`). Every
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -r requirements.txt
-make test        # 13 tests
+make test        # 14 tests
 make evaluate    # fixture rule counts
 make benchmark   # ground truth + threshold sweeps
 make run         # http://127.0.0.1:8000 (TShark/Suricata/Nmap show as unavailable outside Docker)
@@ -84,12 +98,13 @@ Scan targets are constants in code and the lab network is internal-only. The pla
 | [Demo script](report/Demo_Script.md) | Timed live-demonstration walkthrough |
 | [Viva questions](report/Viva_Questions.md) | Likely examiner / interviewer questions with answers |
 | [Portfolio copy](report/Portfolio_Copy.md) | GitHub description, LinkedIn and resume text |
+| [Real-data evaluation](docs/REAL_DATA.md) | Dataset version, license caveat, schema mapping, results, and reproduction command |
 | [Showcase page](docs/index.html) | Landing page for GitHub Pages (Settings → Pages → `main` / `docs`) |
 | [Security policy](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) | Threat model, disclosure process, workflow, history |
 
 ## Limitations and roadmap
 
-- Synthetic, simple telemetry. Next: replay a licensed labelled dataset.
+- The pinned public sample has no benign event labels; false-alert rates cannot be estimated, and the suspicious_process rule missed its one documented PowerShell scenario.
 - Single-source rules. Next: cross-source actor correlation (scan → brute force → exfil).
 - Shared token, no roles. Next: per-analyst accounts and case management.
 - Rules in Python. Next: Sigma rules tested with the same benchmark harness.
@@ -115,6 +130,7 @@ Scan targets are constants in code and the lab network is internal-only. The pla
 ├── docker-compose.yml
 ├── docs/
 │   ├── README.md
+│   ├── REAL_DATA.md
 │   ├── diagrams/  (11 images)
 │   ├── index.html
 │   └── screenshots/  (7 images)
@@ -128,6 +144,7 @@ Scan targets are constants in code and the lab network is internal-only. The pla
     ├── __init__.py
     ├── app.py
     ├── benchmark.py
+    ├── real_data.py
     ├── data/
     │   ├── auth.log
     │   ├── firewall.log

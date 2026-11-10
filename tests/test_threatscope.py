@@ -31,6 +31,27 @@ def test_parsers_skip_malformed_rows():
     assert parse_process(['2026-03-01T10:00:00 host=lab user=test parent=bash process=python command="python -m pytest"'])
 
 
+def test_otrf_sysmon_process_event_adapter_maps_without_network():
+    from threatscope.real_data import adapt_sysmon_process_create
+    record = {
+        "EventID": 1,
+        "Channel": "Microsoft-Windows-Sysmon/Operational",
+        "UtcTime": "2020-09-04 20:09:55.760",
+        "Hostname": "WORKSTATION5.example",
+        "User": "EXAMPLE\\analyst",
+        "Image": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+        "ParentImage": "C:\\Windows\\System32\\wscript.exe",
+        "CommandLine": '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -noP -enc payload',
+    }
+    event = adapt_sysmon_process_create(record)
+    assert event is not None
+    assert event.host == "WORKSTATION5.example"
+    assert event.parent == "wscript.exe"
+    assert event.process == "powershell.exe"
+    assert event.command.endswith("-noP -enc payload")
+    assert adapt_sysmon_process_create(dict(record, EventID=3)) is None
+
+
 def test_detection_thresholds_change_expected_matches():
     events = parse_auth(lines("auth.log"))
     assert detect_brute_force(events, threshold=15)

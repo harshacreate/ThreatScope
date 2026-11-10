@@ -1,0 +1,47 @@
+title: ThreatScope Firewall Denied Connection
+id: 634cd15d-ea70-5604-9cb1-2047484128e5
+name: threatscope_firewall_denied_connection
+status: test
+description: Matches one firewall deny event for the ThreatScope normalized firewall input mapping.
+author: harshacreate
+date: 2026/11/11
+logsource:
+  product: firewall
+  category: network_connection
+detection:
+  selection:
+    Action: DENY
+  condition: selection
+fields:
+  - SourceIp
+  - DestinationIp
+  - DestinationPort
+falsepositives:
+  - Policy-blocked client connections
+level: low
+tags:
+  - attack.discovery
+  - attack.t1046
+---
+title: ThreatScope Firewall Port Scan
+id: a65ebd73-7169-5c45-968b-a5c0c7577a7e
+name: threatscope_firewall_port_scan
+status: test
+description: Finds at least 15 distinct denied destination ports from one source within a one-minute Sigma timespan.
+author: harshacreate
+date: 2026/11/11
+correlation:
+  type: value_count
+  rules:
+    - threatscope_firewall_denied_connection
+  group-by:
+    - SourceIp
+  timespan: 1m
+  condition:
+    field: DestinationPort
+    gte: 15
+  generate: true
+level: medium
+tags:
+  - attack.discovery
+  - attack.t1046

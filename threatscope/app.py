@@ -11,8 +11,8 @@ from dataclasses import asdict
 from flask import Flask, g, jsonify, request, send_from_directory
 
 from threatscope import nettools
-from threatscope.detect import (parse_auth, parse_fw, parse_process, parse_web,
-                                run_all)
+from threatscope.detect import (correlate_alerts, parse_auth, parse_fw,
+                                parse_process, parse_web, run_all)
 from threatscope.web_security import install, rate_limited
 
 ROOT = os.path.dirname(__file__)
@@ -74,6 +74,7 @@ def _summarize(events, bf_threshold=8, scan_threshold=15):
     alerts = run_all(events["auth"], events["firewall"], events["web"],
                      bf_threshold=bf_threshold, scan_threshold=scan_threshold,
                      proc=events.get("process", []))
+    correlated = correlate_alerts(alerts, events.get("web", []))
     order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
     alerts.sort(key=lambda a: (order.get(a.severity, 4), a.time, a.rule))
     sources = Counter(a.source for a in alerts)
@@ -84,9 +85,11 @@ def _summarize(events, bf_threshold=8, scan_threshold=15):
                 for hour in range(9, 12)]
     return {
         "alerts": [asdict(a) for a in alerts],
+        "correlated_alerts": correlated,
         "summary": {
             "events": sum(len(v) for v in events.values()),
             "alerts": len(alerts),
+            "correlated_alerts": len(correlated),
             "critical": sum(a.severity == "Critical" for a in alerts),
             "high": sum(a.severity == "High" for a in alerts),
             "medium": sum(a.severity == "Medium" for a in alerts),

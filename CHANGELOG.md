@@ -14,6 +14,9 @@ This page lists the main ThreatScope changes. It uses the [Keep a Changelog form
 - Added security and benchmark tests.
 - Added the report, slides, short report, diagrams, demo script and interview notes under report/. Added the project page under docs/.
 
+- Added a validated Sigma subset for SSH, firewall port scans, selected Sysmon process events, and ordered scan-to-brute-force correlation.
+- Added source-IP evidence trails linking firewall scans, SSH brute force, and web egress, with time, ordering, missing-key, and duplicate handling.
+
 ## [1.0.0] - 2026-11-10
 
 ### Added

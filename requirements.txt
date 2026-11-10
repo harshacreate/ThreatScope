@@ -1,3 +1,4 @@
 Flask>=3.0,<4
 scapy>=2.5,<3
 pytest>=8.0,<9
+pytest-cov>=5,<7

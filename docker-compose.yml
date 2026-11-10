@@ -1,0 +1,66 @@
+services:
+  threatscope:
+    build: .
+    image: threatscope:local
+    container_name: threatscope-dashboard
+    ports:
+      - "127.0.0.1:8103:8000"
+    environment:
+      THREATSCOPE_ZAP_ENABLED: "1"
+    depends_on:
+      demo-target:
+        condition: service_healthy
+      zap:
+        condition: service_started
+    tmpfs:
+      - /tmp:size=64m
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 768m
+    restart: unless-stopped
+    networks: [lab]
+
+  demo-target:
+    image: threatscope:local
+    container_name: threatscope-demo-target
+    command: ["python", "-m", "threatscope.demo_target"]
+    expose: ["5001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:5001/health',timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    networks: [lab]
+
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: threatscope-zap
+    user: zap
+    command:
+      - zap.sh
+      - -daemon
+      - -host
+      - 0.0.0.0
+      - -port
+      - "8080"
+      - -config
+      - api.disablekey=true
+      - -config
+      - api.addrs.addr.name=.*
+      - -config
+      - api.addrs.addr.regex=true
+    expose: ["8080"]
+    depends_on:
+      demo-target:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1536m
+    networks: [lab]
+
+networks:
+  lab:
+    internal: true

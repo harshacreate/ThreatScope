@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+import hmac
 import os
 import tempfile
 from collections import Counter
 from dataclasses import asdict
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, g, jsonify, request, send_from_directory
 
 from threatscope import nettools
 from threatscope.detect import (parse_auth, parse_fw, parse_process, parse_web,
                                 run_all)
+from threatscope.web_security import install, rate_limited
 
 ROOT = os.path.dirname(__file__)
 DATA = os.path.join(ROOT, "data")
@@ -21,6 +23,29 @@ SAMPLE_PCAP = os.path.join(DATA, "sample-traffic.pcap")
 
 app = Flask(__name__, static_folder=STATIC, static_url_path="/static")
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024
+log = install(app, "threatscope")
+
+
+@app.before_request
+def _require_token():
+    """Optional bearer-token authentication for every /api/ route.
+
+    Off by default (the dashboard binds to loopback for a single analyst). Set
+    THREATSCOPE_API_TOKEN to require ``Authorization: Bearer <token>``, e.g. when
+    the dashboard is shared on a lab network. The comparison is constant-time
+    and failed attempts are written to the audit log without the token value.
+    """
+    expected = os.getenv("THREATSCOPE_API_TOKEN", "")
+    if not expected or not request.path.startswith("/api/"):
+        return None
+    supplied = request.headers.get("Authorization", "")
+    if hmac.compare_digest(supplied.encode(), f"Bearer {expected}".encode()):
+        return None
+    log.warning("rid=%s auth failure path=%s client=%s", getattr(g, "rid", "-"), request.path, request.remote_addr)
+    response = jsonify({"error": "authentication required"})
+    response.status_code = 401
+    response.headers["WWW-Authenticate"] = 'Bearer realm="threatscope"'
+    return response
 
 
 def _read_lines(name: str):
@@ -105,6 +130,7 @@ def dashboard():
 
 
 @app.route("/api/upload", methods=["POST"])
+@rate_limited(20)
 def upload():
     files = request.files.getlist("files")
     if not files:
@@ -154,15 +180,33 @@ def upload():
 
 
 @app.route("/api/nmap-demo", methods=["POST"])
+@rate_limited(4)
 def nmap_demo():
+    log.info("rid=%s nmap demo scan of fixed target", getattr(g, "rid", "-"))
     # No request data is forwarded to the scanner. The wrapper locks its target.
     return jsonify(nettools.nmap_scan())
 
 
 @app.route("/api/zap-demo", methods=["POST"])
+@rate_limited(2)
 def zap_demo():
+    log.info("rid=%s zap baseline of fixed target", getattr(g, "rid", "-"))
     # The ZAP wrapper owns its fixed demo URL; browser input cannot change scope.
     return jsonify(nettools.zap_baseline_scan())
+
+
+_BENCHMARK = None
+
+
+@app.route("/api/benchmark")
+@rate_limited(6)
+def benchmark():
+    """Ground-truth scoring of every rule over 25 synthetic seeds (cached)."""
+    global _BENCHMARK
+    if _BENCHMARK is None:
+        from threatscope.benchmark import run
+        _BENCHMARK = run()
+    return jsonify(_BENCHMARK)
 
 
 def main():

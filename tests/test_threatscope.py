@@ -72,3 +72,13 @@ def test_upload_logs_is_in_memory_and_bad_files_are_rejected():
     assert response.get_json()["dataset_label"] == "USER-UPLOADED LOCAL FILES"
     bad = client.post("/api/upload", data={}, content_type="multipart/form-data")
     assert bad.status_code == 400
+
+
+def test_benchmark_finds_every_injected_incident_without_noise_alerts():
+    from threatscope.benchmark import GROUND_TRUTH, run
+    report = run(seeds=5)
+    assert report["overall"]["tp"] == 5 * len(GROUND_TRUTH)
+    assert report["overall"]["fp"] == 0 and report["overall"]["fn"] == 0
+    # A threshold above the injected burst size must miss it (the sweep is real).
+    sweep = {row["threshold"]: row for row in report["sweeps"]["brute_force_threshold"]}
+    assert sweep[20]["recall"] == 0.0

@@ -5,3 +5,7 @@ __pycache__
 *.py[cod]
 .DS_Store
 *.log.tmp
+report/
+docs/
+scripts/
+.env

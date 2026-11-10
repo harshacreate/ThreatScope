@@ -3,7 +3,7 @@
 All notable changes to ThreatScope are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
-## [1.1.0] - 2026-11-10
+## [1.1.0] - Unreleased (prepared; tag after review and merge)
 
 ### Added / changed
 - Optional bearer-token authentication for all `/api/` routes (`THREATSCOPE_API_TOKEN`); the console prompts for the token on HTTP 401.
@@ -13,6 +13,9 @@ All notable changes to ThreatScope are documented here. Format follows
 - Mobile layout fixed (no horizontal overflow at 320–390 px), upload drop-zone rendering fixed, animated stat counters, 44 px touch targets.
 - Security and benchmark tests.
 - Academic report, presentation, synopsis, diagrams, demo script and viva notes under `report/`; showcase page under `docs/`.
+- Added the pinned Mordor real-data adapter and honest scenario-level miss results in `docs/REAL_DATA.md`.
+- Added a validated Sigma subset for SSH, firewall port scans, selected Sysmon process events, and ordered scan-to-brute-force correlation.
+- Added deterministic source-IP evidence trails for firewall scan → SSH brute force → web egress, with dashboard rendering and ordering, duplicate, missing-key, and time-boundary handling.
 
 ## [1.0.0] - 2026-11-10
 

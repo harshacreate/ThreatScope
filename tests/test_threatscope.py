@@ -62,6 +62,72 @@ def test_detection_thresholds_change_expected_matches():
     assert detect_suspicious_process(parse_process(lines("process.log")))
 
 
+def test_multi_source_correlation_orders_deduplicates_and_keeps_evidence():
+    from threatscope.detect import Alert, correlate_alerts
+    def alert(rule, time, actor="198.51.100.50", evidence=None):
+        return Alert(rule, "T1046", "Discovery", "Medium", rule, time, actor,
+                     evidence or rule, [])
+    scan = alert("port_scan", "2026-03-01 09:00:00", evidence="15 denied ports")
+    brute = alert("brute_force_login", "2026-03-01 09:15:00", evidence="8 SSH failures")
+    exfil = alert("data_exfil", "2026-03-01 09:30:00", evidence="6 MB egress")
+    from datetime import datetime, timedelta
+    from threatscope.detect import WebEvent
+    start = datetime(2026, 3, 1, 9, 15, 1)
+    web = [WebEvent(start + timedelta(seconds=i), "198.51.100.50", "GET", f"/x{i}", 200, 300_000)
+           for i in range(17)]
+    result = correlate_alerts([exfil, brute, scan, scan], web)
+    assert len(result) == 1
+    assert result[0]["stages"] == ["port_scan", "brute_force_login", "data_exfil"]
+    assert [row["source_type"] for row in result[0]["evidence"]] == [
+        "firewall", "authentication", "web"]
+    assert len(result[0]["evidence"]) == 3
+
+
+def test_raw_multi_source_fixture_emits_separate_correlation_and_rule_alerts():
+    from datetime import datetime, timedelta
+    from threatscope.detect import (AuthEvent, FwEvent, WebEvent, correlate_alerts,
+                                    run_all)
+    start = datetime(2026, 3, 1, 9, 0, 0)
+    actor = "198.51.100.50"
+    firewall = [FwEvent(start + timedelta(seconds=i), actor, "10.0.0.8", 20 + i, "DENY")
+                for i in range(15)]
+    auth = [AuthEvent(start + timedelta(seconds=20 + i * 5), "analyst", actor, False)
+            for i in range(8)]
+    web = [WebEvent(start + timedelta(seconds=65 + i), actor, "GET", "/export", 200, 300_000)
+           for i in range(17)]
+    alerts = run_all(auth, firewall, web)
+    assert {a.rule for a in alerts} >= {"port_scan", "brute_force_login", "data_exfil"}
+    assert len(alerts) == 3
+    trails = correlate_alerts(alerts, web)
+    assert len(trails) == 1 and len(trails[0]["evidence"]) == 3
+
+
+def test_multi_source_correlation_boundaries_missing_keys_and_unrelated_actors():
+    from threatscope.detect import Alert, correlate_alerts
+    def alert(rule, time, actor):
+        return Alert(rule, "T1046", "Discovery", "Medium", rule, time, actor, rule, [])
+    scan = alert("port_scan", "2026-03-01 09:00:00", "198.51.100.50")
+    boundary = alert("brute_force_login", "2026-03-01 09:30:00", "198.51.100.50")
+    from datetime import datetime, timedelta
+    from threatscope.detect import WebEvent
+    web_boundary = [WebEvent(datetime(2026, 3, 1, 9, 30, 0), "198.51.100.50", "GET",
+                             f"/boundary/{i}", 200, 300_000) for i in range(17)]
+    assert len(correlate_alerts([scan, boundary], web_boundary, window_seconds=1800)) == 1
+    outside = alert("brute_force_login", "2026-03-01 09:30:01", "198.51.100.50")
+    assert correlate_alerts([scan, outside], web_boundary, window_seconds=1800) == []
+    reversed_stage = alert("port_scan", "2026-03-01 09:10:00", "203.0.113.8")
+    earlier_brute = alert("brute_force_login", "2026-03-01 09:00:00", "203.0.113.8")
+    unrelated_web = [WebEvent(datetime(2026, 3, 1, 9, 10, 1), "203.0.113.8", "GET",
+                              f"/bad/{i}", 200, 300_000) for i in range(17)]
+    assert correlate_alerts([reversed_stage, earlier_brute], unrelated_web) == []
+    unrelated = alert("brute_force_login", "2026-03-01 09:10:00", "203.0.113.9")
+    assert correlate_alerts([scan, unrelated], web_boundary) == []
+    assert correlate_alerts([scan, alert("brute_force_login", "2026-03-01 09:10:00", "")], web_boundary) == []
+    duplicate_under_threshold = web_boundary[:16] + [web_boundary[0]]
+    assert correlate_alerts([scan, alert("brute_force_login", "2026-03-01 09:10:00", "198.51.100.50")],
+                            duplicate_under_threshold) == []
+
+
 def test_nmap_rejects_arbitrary_targets(monkeypatch):
     monkeypatch.setattr(nettools, "available", lambda _: True)
     monkeypatch.setattr(nettools.subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not scan")))
@@ -78,6 +144,8 @@ def test_dashboard_and_local_only_scan_api(monkeypatch):
     dashboard = client.get("/api/dashboard?brute_force=8&port_scan=15").get_json()
     assert dashboard["dataset_label"] == "SYNTHETIC FIXTURE"
     assert dashboard["summary"]["alerts"] >= 4
+    assert dashboard["summary"]["correlated_alerts"] == 0
+    assert dashboard["correlated_alerts"] == []
     assert "T1059" in dashboard["techniques"]
     monkeypatch.setattr(webapp.nettools, "nmap_scan", lambda: {"available": False, "note": "test stub"})
     assert client.post("/api/nmap-demo", json={"target": "example.com"}).status_code == 200

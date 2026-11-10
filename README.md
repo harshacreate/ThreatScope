@@ -2,7 +2,6 @@
 
 **A local SOC triage lab that correlates synthetic endpoint, firewall, web, and packet-capture evidence into explainable alerts.**
 
-![ThreatScope dashboard preview](docs/threatscope-preview.png)
 
 > **Lab scope:** bundled and generated events are synthetic. Network tools are restricted to the Compose-only `demo-target` container. This project is for defensive learning and authorized local testing.
 

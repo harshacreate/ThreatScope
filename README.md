@@ -1,81 +1,151 @@
 # ThreatScope
 
-**A local SOC triage lab that correlates synthetic endpoint, firewall, web, and packet-capture evidence into explainable alerts.**
+**A reproducible SOC detection lab with ground-truth rule evaluation.**
 
+Design Project III · Semester V (2025–26) · B.Tech, specialisation in Cyber Security, DISC, Hindustan Institute of Technology and Science, Chennai · by **Malepati Sree Harsha**
 
-> **Lab scope:** bundled and generated events are synthetic. Network tools are restricted to the Compose-only `demo-target` container. This project is for defensive learning and authorized local testing.
+![tests](https://img.shields.io/badge/tests-13%20passing-2ea44f) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
 
-## Problem / why it matters
+![ThreatScope SOC console](docs/screenshots/01-soc-overview.png)
 
-Security analysts often need to connect related signals across different log formats before they can decide what to investigate. ThreatScope demonstrates a small, inspectable version of that workflow, with rule evidence and response notes visible beside each alert.
+> **Lab scope:** all bundled telemetry is synthetic (documentation IP ranges). Nmap and OWASP ZAP can reach only the bundled `demo-target` container on an internal Docker network with no route out. Use only data you are authorized to inspect.
 
-The project is deliberately a local teaching lab rather than a production SIEM. Its fixtures are designed to exercise rules and do not represent live incidents or measured detection rates.
+ThreatScope parses authentication, firewall, web and process logs plus packet captures. It raises **MITRE ATT&CK-mapped alerts** with evidence and response playbooks, and runs **TShark, Suricata, Nmap and OWASP ZAP** inside an isolated lab. Its research contribution is a **ground-truth benchmark**: every rule is scored against injected incidents over 25 seeds, with threshold sweeps that show where each rule starts to fail.
 
-## What I built
+## Key results (measured)
 
-- Parsers and rules for authentication, firewall, web, and process events, with threshold controls and ATT&CK technique references.
-- A browser dashboard with alert details, timeline, source summary, evidence, and response playbooks.
-- Offline PCAP inspection with TShark and Suricata against a deterministic bundled capture.
-- Optional Nmap connect scan and OWASP ZAP spider/passive baseline, locked to the internal demo web container. Neither tool accepts a user-supplied target.
-- Local log/PCAP upload with size limits; uploads are processed in memory or temporary files and are not retained.
+| Result | Value |
+|---|---|
+| Bundled evidence | 918 events → 6 alerts across 5 ATT&CK techniques |
+| Ground truth over 25 seeds (default thresholds) | **150 TP · 0 FP · 0 FN** |
+| Safe threshold bands | brute force **3–16** failures / 120 s · port scan **5–28** ports / 60 s |
+| Real tools on the bundled PCAP / lab | TShark 62 packets · Suricata 3 alerts · Nmap 1 open port · ZAP 16 passive findings |
+| Automated tests | **13 / 13 passing** |
+| Full dashboard call (parse + 5 rules + TShark + Suricata) | p50 126.9 ms · p95 143.5 ms |
 
-```mermaid
-flowchart LR
-  A[Bundled synthetic logs] --> P[Parsers]
-  B[Bundled PCAP] --> T[TShark summary]
-  B --> S[Suricata rules]
-  U[Local user files] --> P
-  P --> D[Detection rules and thresholds]
-  D --> API[Flask API]
-  T --> API
-  S --> API
-  API --> UI[Browser SOC dashboard]
-  N[Nmap / ZAP] --> L[Compose-only demo target]
-```
+| Rule | TP | FP | FN | Precision | Recall |
+|---|---|---|---|---|---|
+| `brute_force_login` | 25 | 0 | 0 | 1.00 | 1.00 |
+| `data_exfil` | 25 | 0 | 0 | 1.00 | 1.00 |
+| `impossible_travel` | 25 | 0 | 0 | 1.00 | 1.00 |
+| `port_scan` | 25 | 0 | 0 | 1.00 | 1.00 |
+| `suspicious_process` | 50 | 0 | 0 | 1.00 | 1.00 |
 
-## Results / evaluation
+![Threshold sweep](docs/diagrams/chart-threshold-sweep.png)
 
-Run `make evaluate` to reproduce rule counts over the checked-in fixtures. These are **SYNTHETIC fixture counts**, not benchmark scores, precision/recall, or evidence of real-world effectiveness. The rules are exercised by unit tests; the bundled PCAP is also passed to TShark and Suricata when those tools are available.
+Perfect scores reflect simple synthetic noise and rules written for these scenarios. The sweeps are the informative part: they show the thresholds at which benign noise starts to fire, and where an attack slips under the rule.
 
-## What I learned / design decisions
+## Detections
 
-- Kept parsing, detection, tool adapters, and presentation separate so a false match can be traced to its input and rule.
-- Made scan targets constants in the backend instead of accepting a target from the browser. Compose places the dashboard, scanner, and demo target on a private internal network.
-- Used deterministic sample data and fixed chart buckets so a reviewer can reproduce the same demo.
-- Kept synthetic and user-uploaded data labels distinct; the UI does not imply that synthetic event counts are operational metrics.
+| Rule | ATT&CK | Logic |
+|---|---|---|
+| `brute_force_login` | T1110 | ≥ 8 failures from one IP within 120 s (tunable) |
+| `impossible_travel` | T1078 | Same user logs in from internal and external IPs within 600 s |
+| `port_scan` | T1046 | ≥ 15 distinct ports from one IP within 60 s (tunable) |
+| `data_exfil` | T1041 | ≥ 5 MB transferred by one source |
+| `suspicious_process` | T1059 | Encoded PowerShell, curl/wget, reverse shells, shells spawned by web servers |
 
-## Run it
+## Architecture and isolation
 
-Docker Compose is the complete path: it includes TShark, Suricata, Nmap, and an isolated OWASP ZAP service.
+![Deployment](docs/diagrams/deployment.png)
+
+Only the dashboard publishes a port, on 127.0.0.1:8103. It joins an extra `web` network because Docker does not publish ports for containers that are only on an internal network. Fixing that silent bug was part of this release. `demo-target` and ZAP live only on `lab` (`internal: true`).
+
+## Quick start
 
 ```bash
-docker compose up --build -d
+docker compose up --build -d      # first run pulls OWASP ZAP (~1.5 GB)
 open http://localhost:8103
-make test
-make evaluate
-# Stop only this project's containers:
 docker compose down
 ```
 
-The dashboard binds to `127.0.0.1:8103`; the demo target and ZAP have no host-published ports. The ZAP image may take a while to download on first run. `Start.command` launches the same local stack.
-
-For parser and rule development without Docker:
+Optional authentication: set `THREATSCOPE_API_TOKEN` (see `.env.example`). Every `/api/` call then needs `Authorization: Bearer <token>`, and the console prompts for it.
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -r requirements.txt
-make test
-make evaluate
-python -m threatscope.app
+make test        # 13 tests
+make evaluate    # fixture rule counts
+make benchmark   # ground truth + threshold sweeps
+make run         # http://127.0.0.1:8000 (TShark/Suricata/Nmap show as unavailable outside Docker)
 ```
 
-The local Flask server binds to loopback. Tool cards report when the packet-analysis tools are unavailable outside Compose.
+## Security
 
-## Limitations & next steps
+Scan targets are constants in code and the lab network is internal-only. The platform has strict CSP and OWASP headers, an audit log for scans and authentication failures, and rate limits (Nmap 4/min, ZAP 2/min, uploads 20/min). Optional bearer-token authentication uses a constant-time comparison. Uploads are processed in memory and temporary PCAPs are deleted. Containers are non-root with `no-new-privileges` and memory limits. See [SECURITY.md](SECURITY.md).
 
-Rules are hand-written examples over small synthetic fixtures. They can miss attacks and generate false positives; ATT&CK tags are context, not validation. The dashboard has no authentication and is intended to remain on loopback. Uploaded files can contain sensitive information, so only use data you are allowed to inspect. Next steps include adding parser fixtures from a licensed source, measuring false positives on a documented dataset, and reviewing every rule with a second analyst.
+## Documentation
 
-## Data provenance and licensing
+| Document | |
+|---|---|
+| [Project report (PDF)](report/ThreatScope_Project_Report.pdf) · [Word](report/ThreatScope_Project_Report.docx) | IEEE-style report: literature survey, SRS, UML/DFD, implementation, testing, results, references |
+| [Presentation (PowerPoint)](report/ThreatScope_Presentation.pptx) · [PDF](report/ThreatScope_Presentation.pdf) | Review / viva slides with speaker notes |
+| [Synopsis](report/ThreatScope_Synopsis.pdf) | Two-page project synopsis |
+| [Demo script](report/Demo_Script.md) | Timed live-demonstration walkthrough |
+| [Viva questions](report/Viva_Questions.md) | Likely examiner / interviewer questions with answers |
+| [Portfolio copy](report/Portfolio_Copy.md) | GitHub description, LinkedIn and resume text |
+| [Showcase page](docs/index.html) | Landing page for GitHub Pages (Settings → Pages → `main` / `docs`) |
+| [Security policy](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) | Threat model, disclosure process, workflow, history |
 
-All checked-in logs and the generated PCAP are locally generated synthetic teaching data using documentation-only address ranges. No external telemetry or third-party incident dataset is bundled. The source code is MIT licensed; tool and container images remain under their respective upstream licenses.
+## Limitations and roadmap
+
+- Synthetic, simple telemetry. Next: replay a licensed labelled dataset.
+- Single-source rules. Next: cross-source actor correlation (scan → brute force → exfil).
+- Shared token, no roles. Next: per-analyst accounts and case management.
+- Rules in Python. Next: Sigma rules tested with the same benchmark harness.
+
+## Repository layout
+
+```
+├── .dockerignore
+├── .env.example
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── .gitignore
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── Dockerfile
+├── LICENSE
+├── Makefile
+├── PROJECT_OVERVIEW.md
+├── README.md
+├── SECURITY.md
+├── Start.command
+├── docker-compose.yml
+├── docs/
+│   ├── README.md
+│   ├── diagrams/  (11 images)
+│   ├── index.html
+│   └── screenshots/  (7 images)
+├── requirements.txt
+├── scripts/
+│   └── loadtest.py
+├── tests/
+│   ├── test_security.py
+│   └── test_threatscope.py
+└── threatscope/
+    ├── __init__.py
+    ├── app.py
+    ├── benchmark.py
+    ├── data/
+    │   ├── auth.log
+    │   ├── firewall.log
+    │   ├── process.log
+    │   ├── sample-traffic.pcap
+    │   └── web.log
+    ├── demo_target.py
+    ├── detect.py
+    ├── evaluate.py
+    ├── gen_data.py
+    ├── nettools.py
+    ├── rules/
+    │   └── local-demo.rules
+    ├── static/
+    │   └── index.html
+    └── web_security.py
+```
+
+## License and data
+
+MIT, see [LICENSE](LICENSE). Bundled logs and the PCAP are locally generated synthetic data. Tool images remain under their upstream licenses.

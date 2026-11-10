@@ -1,6 +1,6 @@
 # ThreatScope — project overview
 
-**Portfolio stage:** Year 3 · **Focus:** local SOC triage and detection engineering
+**Course:** Design Project III · Semester V · 2025–26 · **Author:** Malepati Sree Harsha · **Focus:** local SOC triage and detection engineering
 
 ## Goal
 

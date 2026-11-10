@@ -1,10 +1,14 @@
 # ThreatScope
 
+![ThreatScope demo](demo/threatscope-demo.gif)
+
+Walkthrough fixture uses generated RFC 5737 test IP logs; the public-data result below is separate.
+
 **A reproducible SOC detection lab with ground-truth rule evaluation.**
 
 Design Project III · Semester V (2025–26) · B.Tech, specialisation in Cyber Security, DISC, Hindustan Institute of Technology and Science, Chennai · by **Malepati Sree Harsha**
 
-![tests](https://img.shields.io/badge/tests-17%20passing-2ea44f) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
+![tests](https://img.shields.io/badge/tests-17%20passing-2ea44f) [![coverage](https://codecov.io/gh/harshacreate/ThreatScope/branch/main/graph/badge.svg)](https://codecov.io/gh/harshacreate/ThreatScope) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
 
 ![ThreatScope SOC console](docs/screenshots/01-soc-overview.png)
 
@@ -74,6 +78,12 @@ chain window. It preserves the underlying per-rule alerts.
 Only the dashboard publishes a port, on 127.0.0.1:8103. It joins an extra `web` network because Docker does not publish ports for containers that are only on an internal network. Fixing that silent bug was part of this release. `demo-target` and ZAP live only on `lab` (`internal: true`).
 
 ## Quick start
+
+Run the published dashboard image (full Compose lab and isolated scanner tools are available below):
+
+```bash
+docker run --rm -p 127.0.0.1:8103:8000 ghcr.io/harshacreate/threatscope:latest
+```
 
 ```bash
 docker compose up --build -d      # first run pulls OWASP ZAP (~1.5 GB)

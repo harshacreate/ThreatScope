@@ -9,3 +9,4 @@ htmlcov/
 .env
 *.log.tmp
 threatscope/data/sample-traffic.pcap
+threatscope/data/real-data/

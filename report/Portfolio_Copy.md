@@ -1,16 +1,19 @@
-# ThreatScope — portfolio copy
+# ThreatScope
 
-## GitHub
-**Description:** Reproducible SOC detection lab: four log sources + PCAP, five MITRE ATT&CK-mapped rules with playbooks, TShark/Suricata offline, Nmap/ZAP locked to an internal demo target, and a ground-truth benchmark with threshold sweeps for every rule. CSP, audit logs, rate limits, optional token auth. Flask · Docker.
+## Short description
 
-**Topics:** `cybersecurity` `siem` `soc` `detection-engineering` `mitre-attack` `suricata` `wireshark` `nmap` `owasp-zap` `docker`
+Reads sample logs and network traffic to find signs of attacks. Shows alerts, evidence, and related MITRE ATT&CK methods.
 
-## LinkedIn — Projects section
-**ThreatScope — SOC Detection Lab with Ground-Truth Rule Evaluation**
-Built a SIEM-lite lab that parses auth, firewall, web and process logs plus PCAPs, raises ATT&CK-mapped alerts (T1110, T1078, T1046, T1041, T1059) with evidence and response playbooks, and integrates TShark, Suricata, Nmap and OWASP ZAP, with scans locked to an internal-only Docker network. Every rule is measured against injected ground truth over 25 seeds (150 TP, 0 FP), and threshold sweeps show each rule's safe operating band. Hardened with CSP, audit logging, rate limits and optional token auth; 13 automated tests.
-*Skills:* Detection Engineering · SIEM · MITRE ATT&CK · Suricata · Wireshark/TShark · Nmap · OWASP ZAP · Python · Docker
+## Project summary
 
-## Resume bullets
-- Built **ThreatScope**, a Flask/Docker SOC lab with five sliding-window detection rules mapped to MITRE ATT&CK, alert triage UI with playbooks, and TShark/Suricata PCAP analysis.
-- Engineered a **ground-truth benchmark** (25 seeds, threshold sweeps) validating every rule: 150 TP / 0 FP, and identified safe threshold bands (e.g. brute force 3–16 per 120 s).
-- Isolated Nmap and OWASP ZAP to an internal-only Compose network with fixed targets; added CSP, audit logging, rate limits and constant-time token auth; fixed a networking defect that left the console unreachable.
+I made ThreatScope as a local security lab. It reads sample login, firewall, web, and process logs. It also checks sample network traffic and shows possible attacks.
+
+In 25 test runs, the rules found 150 sample attacks and raised no false alerts. These results apply only to the sample data used here. A separate public sample did not have labels for safe events, so its false alert rate could not be counted.
+
+## Resume notes
+
+- Made a local page for checking sample logs and network traffic.
+- Added alerts with evidence and next steps.
+- Kept Nmap and OWASP ZAP inside a private Docker network with a fixed sample target.
+
+See the main README and Real data notes for the test details and limits.

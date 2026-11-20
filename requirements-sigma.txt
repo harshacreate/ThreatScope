@@ -1,2 +1,2 @@
-sigma-cli==1.0.6
-PySigma==0.11.23
+sigma-cli==4.0.1
+PySigma==2.1.0

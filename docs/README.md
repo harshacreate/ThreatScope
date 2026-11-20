@@ -4,7 +4,7 @@ This folder has the project page, pictures, and diagrams.
 
 | File or folder | What it has |
 |---|---|
-| `index.html` | Project page. To publish it, open **Settings → Pages**. Choose branch `main` and folder `/docs`. On GitHub Pages, it links to this repo and its report. |
+| `index.html` | Project page. To publish it, open Settings, then Pages. Choose branch `main` and folder `/docs`. On GitHub Pages, it links to this repo and its report. |
 | `screenshots/` | Pictures from the Docker build with all tools installed. They show desktop and 390-pixel mobile views. |
 | `diagrams/` | Pictures that show how the app works, plus charts from test results. |
 

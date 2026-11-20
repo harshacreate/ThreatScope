@@ -12,10 +12,10 @@ The first start downloads the OWASP ZAP image, which is about 1.5 GB. Do this be
 
 | Time | Show | Say |
 |---|---|---|
-| 0:00–0:15 | Show the start command, the dashboard, and its status. | “ThreatScope is a local practice app for checking security alerts. The sample events are made up, and the scan tools stay on the private demo network.” |
-| 0:15–0:35 | Open a brute-force alert. Show its proof and response guide. | “Eight failed logins from one source in 120 seconds cause this T1110 alert. The proof shows why it appeared. The guide gives the analyst a next step.” |
-| 0:35–0:58 | Open Detection Quality. Run the test and show the right alerts, wrong alerts, and missed alerts for each rule. | “This test runs made-up attack events with sample background noise 25 times. Across the rules, it found 150 attacks, with no wrong alerts and no missed attacks.” |
-| 0:58–1:15 | Show the results for each rule and the note about the test limits. | “These perfect results only apply to the simple sample cases the rules were made for. They give us a clear starting point. They do not show how the rules would work on real attacks or other data.” |
+| 0:00 to 0:15 | Show the start command, the dashboard, and its status. | “ThreatScope is a local practice app for checking security alerts. The sample events are made up, and the scan tools stay on the private demo network.” |
+| 0:15 to 0:35 | Open a brute-force alert. Show its proof and response guide. | “Eight failed logins from one source in 120 seconds cause this T1110 alert. The proof shows why it appeared. The guide gives the analyst a next step.” |
+| 0:35 to 0:58 | Open Detection Quality. Run the test and show the right alerts, wrong alerts, and missed alerts for each rule. | “This test runs made-up attack events with sample background noise 25 times. Across the rules, it found 150 attacks, with no wrong alerts and no missed attacks.” |
+| 0:58 to 1:15 | Show the results for each rule and the note about the test limits. | “These perfect results only apply to the simple sample cases the rules were made for. They give us a clear starting point. They do not show how the rules would work on real attacks or other data.” |
 
 ## Full demo (7 minutes)
 

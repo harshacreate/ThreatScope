@@ -8,7 +8,7 @@ app = Flask(__name__)
 @app.get("/")
 def index():
     return """<!doctype html><title>Demo Shop</title><h1>Local Demo Shop</h1>
-    <a href='/search?q=blue+widget'>Search</a> · <a href='/account'>Account</a>"""
+    <a href='/search?q=blue+widget'>Search</a>, <a href='/account'>Account</a>"""
 
 
 @app.get("/search")

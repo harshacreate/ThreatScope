@@ -163,9 +163,10 @@ def _is_external(ip: str) -> bool:
 
 
 def detect_impossible_travel(events: List[AuthEvent], window=600) -> List[Alert]:
-    """Flag a successful login from a *public* IP shortly after one from a
-    *private* IP (or vice-versa) for the same user — the classic account-takeover
-    signal. Internal-to-internal logins are normal and do not fire."""
+    """Flag a successful login from a public IP soon after one from a private IP.
+
+    Also flag the reverse for the same user. This can signal an account takeover.
+    Internal-to-internal logins are normal and do not fire."""
     last: Dict[str, tuple] = {}
     fired: set = set()
     alerts = []

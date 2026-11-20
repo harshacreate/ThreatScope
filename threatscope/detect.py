@@ -1,7 +1,5 @@
-"""Detection engine: parse logs into events, run rules, emit ATT&CK-mapped alerts.
-
-Rules are intentionally small and readable. Each returns Alerts with a severity,
-the MITRE ATT&CK technique, the supporting evidence, and a response playbook.
+"""Read sample logs, find events, and check them with small rules. Each alert includes its
+severity, MITRE ATT&CK link, evidence, and a response guide.
 """
 
 from __future__ import annotations
@@ -56,9 +54,7 @@ PLAYBOOKS = {
 }
 
 
-# --------------------------------------------------------------------------
-# Parsers
-# --------------------------------------------------------------------------
+# Log parsers
 
 @dataclass
 class AuthEvent:
@@ -119,9 +115,7 @@ def parse_process(lines: List[str]) -> List[ProcessEvent]:
     return out
 
 
-# --------------------------------------------------------------------------
-# Rules
-# --------------------------------------------------------------------------
+# Detection rules
 
 def _mk(rule, tech, sev, title, ts, src, ev):
     tactic, name = ATTACK[tech]
@@ -146,10 +140,8 @@ def detect_brute_force(events: List[AuthEvent], threshold=8, window=120) -> List
 
 
 def _is_external(ip: str) -> bool:
-    """Treat addresses outside configured private/link-local ranges as external.
-
-    The bundled fixtures use RFC 5737 documentation addresses for safe examples;
-    those are still outside the lab's private address ranges.
+    """Return true if an address is outside the private and local ranges used by the lab. The
+    sample data uses reserved addresses for examples.
     """
     try:
         import ipaddress
@@ -163,10 +155,10 @@ def _is_external(ip: str) -> bool:
 
 
 def detect_impossible_travel(events: List[AuthEvent], window=600) -> List[Alert]:
-    """Flag a successful login from a public IP soon after one from a private IP.
-
-    Also flag the reverse for the same user. This can signal an account takeover.
-    Internal-to-internal logins are normal and do not fire."""
+    """Flag a successful login from an external address soon after one from a private address, or
+    the reverse, for the same user. This may point to an account takeover. Logins between
+    private addresses do not trigger this rule.
+    """
     last: Dict[str, tuple] = {}
     fired: set = set()
     alerts = []
@@ -249,12 +241,9 @@ def run_all(auth: List[AuthEvent], fw: List[FwEvent], web: List[WebEvent],
 
 def correlate_alerts(alerts: List[Alert], web_events: Optional[List[WebEvent]] = None,
                      window_seconds: int = 1800) -> List[Dict]:
-    """Join scan -> SSH brute-force -> 5 MB web-egress evidence by source IP.
-
-    The scan and brute-force stages use their existing rule alert timestamps.
-    The final stage sums deduplicated raw web events after brute force. The
-    entire ordered chain, and the post-brute-force egress interval, must fit
-    inside an inclusive time window. Per-rule alerts remain unchanged.
+    """Join a scan, SSH password guessing, and 5 MB of web traffic from the same address. The
+    events must happen in order and inside the set time window. The added alert does not change
+    the original alerts.
     """
     if not isinstance(window_seconds, int) or isinstance(window_seconds, bool) \
             or not 1 <= window_seconds <= 86_400:

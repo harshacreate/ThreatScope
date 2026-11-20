@@ -1,4 +1,4 @@
-"""Intentionally vulnerable local-only target used by the ThreatScope scan lab."""
+"""A local sample app with known security bugs. The scan lab uses it for practice."""
 
 from flask import Flask, render_template_string, request
 
@@ -13,7 +13,7 @@ def index():
 
 @app.get("/search")
 def search():
-    # Deliberately unsafe output in a network-isolated training target. Never copy.
+    # This unsafe output is only for the local training app. Do not copy it.
     query = request.args.get("q", "")
     return render_template_string("<h1>Search results</h1><p>{{ query|safe }}</p>", query=query)
 

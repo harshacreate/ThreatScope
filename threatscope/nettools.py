@@ -1,8 +1,6 @@
-"""Adapters for tools used by the ThreatScope local lab.
-
-Network scanning is intentionally locked to the compose service named
-``demo-target``. Uploaded packet captures are written only to a temporary
-directory and removed when analysis completes.
+"""Connect ThreatScope to tools used in the local lab. Network scans only run against the
+demo-target service. Uploaded packet captures are saved in a temporary folder and deleted
+after the check.
 """
 
 from __future__ import annotations
@@ -28,7 +26,7 @@ def available(name: str) -> bool:
 
 
 def generate_pcap(path: str) -> bool:
-    """Write a deterministic teaching PCAP with scan and HTTP-export patterns."""
+    """Make a repeatable sample PCAP file with scan and web traffic."""
     try:
         from scapy.all import IP, TCP, Raw, wrpcap
     except Exception:
@@ -120,7 +118,7 @@ def suricata_alerts(pcap: str, rules: str) -> Dict:
 
 
 def nmap_scan(target: str = DEMO_TARGET) -> Dict:
-    """Scan only the private bundled demo service; reject every other target."""
+    """Scan only the bundled private demo service. Refuse every other target."""
     if target != DEMO_TARGET:
         return {"available": False, "error": "Nmap target is fixed to the bundled demo container."}
     if not available("nmap"):
@@ -150,7 +148,7 @@ def _zap_api(component: str, endpoint: str, method: str = "view", **params):
 
 
 def zap_baseline_scan() -> Dict:
-    """Run a ZAP spider + passive scan against the internal bundled demo only."""
+    """Run the ZAP spider and passive check against the bundled demo service only."""
     if os.getenv("THREATSCOPE_ZAP_ENABLED", "1") != "1":
         return {"available": False, "note": "The ZAP service is disabled."}
     try:

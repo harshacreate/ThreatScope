@@ -1,10 +1,7 @@
-"""Scenario-level evaluation against one pinned OTRF Security-Datasets sample.
-
-The upstream sample has no benign/malicious event labels. This adapter uses its
-documented Local PowerShell Execution scenario as one positive scenario, maps
-Sysmon Process Create events into ThreatScope's process-event schema, and leaves
-false-alert counts unavailable because the source contains no labeled benign
-scenarios. It never uploads or executes dataset content.
+"""Check one saved OTRF Security Datasets example. The source labels one PowerShell activity as
+a known attack, but does not label safe activity. This check maps Sysmon process events into
+the ThreatScope format. It cannot count false alerts because safe events are not labeled. It
+does not upload or run the sample data.
 """
 
 from __future__ import annotations
@@ -95,7 +92,7 @@ def _timestamp(event: Dict) -> Optional[datetime]:
 
 
 def adapt_sysmon_process_create(event: Dict) -> Optional[ProcessEvent]:
-    """Map one Sysmon event ID 1 record into ThreatScope's existing schema."""
+    """Turn one Sysmon process event with ID 1 into the format used by ThreatScope."""
     if str(event.get("EventID")) != "1":
         return None
     if event.get("Channel") != "Microsoft-Windows-Sysmon/Operational":

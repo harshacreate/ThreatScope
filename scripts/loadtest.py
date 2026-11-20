@@ -1,12 +1,8 @@
-"""Small dependency-free load test for a locally running instance.
-
-Usage:
-    python scripts/loadtest.py                      # default base URL
-    python scripts/loadtest.py --base http://127.0.0.1:PORT --requests 200 --workers 8
-
-Sends the same request many times from a thread pool and reports throughput and
-p50 / p95 / max latency per endpoint. Only point it at your own local instance:
-rate-limited endpoints are deliberately excluded.
+"""Send the same request many times to an app running on your computer. Run python
+scripts/loadtest.py for the default address. Add --base, --requests, or --workers to change
+the address, number of requests, or workers. The script reports requests per second, the
+middle response time, the 95th percentile response time, and the slowest response. Use it
+only with your own local app. It skips routes with request limits.
 """
 
 from __future__ import annotations

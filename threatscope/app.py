@@ -1,4 +1,4 @@
-"""Flask API and local-only SOC dashboard for the synthetic ThreatScope lab."""
+"""A Flask API and local dashboard for the ThreatScope sample lab."""
 
 from __future__ import annotations
 
@@ -28,12 +28,10 @@ log = install(app, "threatscope")
 
 @app.before_request
 def _require_token():
-    """Optional bearer-token authentication for every /api/ route.
-
-    Off by default (the dashboard binds to loopback for a single analyst). Set
-    THREATSCOPE_API_TOKEN to require ``Authorization: Bearer <token>``, e.g. when
-    the dashboard is shared on a lab network. The comparison is constant-time
-    and failed attempts are written to the audit log without the token value.
+    """Optionally check for a token on every /api/ route. This is off by default. The dashboard
+    uses the local computer address by default. Set THREATSCOPE_API_TOKEN to require a token
+    when sharing it on a lab network. The app compares tokens in constant time and does not
+    write them to the audit log.
     """
     expected = os.getenv("THREATSCOPE_API_TOKEN", "")
     if not expected or not request.path.startswith("/api/"):
@@ -79,7 +77,7 @@ def _summarize(events, bf_threshold=8, scan_threshold=15):
     alerts.sort(key=lambda a: (order.get(a.severity, 4), a.time, a.rule))
     sources = Counter(a.source for a in alerts)
     techniques = sorted({a.technique for a in alerts})
-    # Fixed-size chart buckets make the replay display stable between sessions.
+    # Use the same chart intervals each time.
     buckets = Counter(a.time[11:13] + ":00" for a in alerts)
     timeline = [{"label": f"{hour:02d}:00", "count": buckets.get(f"{hour:02d}:00", 0)}
                 for hour in range(9, 12)]
@@ -186,7 +184,7 @@ def upload():
 @rate_limited(4)
 def nmap_demo():
     log.info("rid=%s nmap demo scan of fixed target", getattr(g, "rid", "-"))
-    # No request data is forwarded to the scanner. The wrapper locks its target.
+    # The scanner wrapper uses a fixed target and does not send user data.
     return jsonify(nettools.nmap_scan())
 
 
@@ -194,7 +192,7 @@ def nmap_demo():
 @rate_limited(2)
 def zap_demo():
     log.info("rid=%s zap baseline of fixed target", getattr(g, "rid", "-"))
-    # The ZAP wrapper owns its fixed demo URL; browser input cannot change scope.
+    # The browser cannot change the target used by ZAP.
     return jsonify(nettools.zap_baseline_scan())
 
 
@@ -204,7 +202,7 @@ _BENCHMARK = None
 @app.route("/api/benchmark")
 @rate_limited(6)
 def benchmark():
-    """Ground-truth scoring of every rule over 25 synthetic seeds (cached)."""
+    """Score every detection rule on 25 sets of made-up data. Keep the scores after the first run."""
     global _BENCHMARK
     if _BENCHMARK is None:
         from threatscope.benchmark import run

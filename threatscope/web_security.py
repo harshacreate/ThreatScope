@@ -1,18 +1,7 @@
-"""HTTP hardening, request logging, error handling and rate limiting.
-
-``install(app)`` wires everything into the Flask app:
-
-* Security headers recommended by the OWASP Secure Headers Project. The UI is a
-  single self-contained page, so the Content-Security-Policy only allows the
-  app's own origin (inline code is needed because the page ships as one file).
-* A request ID per request (accepted from ``X-Request-ID`` only when it is a
-  short token, so a client cannot inject text into log lines).
-* One structured access-log line per request: method, path, status, duration.
-  Request bodies are never logged; they can contain passwords, files or logs.
-* JSON error bodies for API routes, and a generic 500 that hides stack traces.
-
-``rate_limited(n)`` caps how often one client may call an expensive endpoint
-(external tools, deliberate slow hashing) per minute.
+"""Set up web security, request logs, error messages, and request limits in the Flask app. Add
+security headers, log request details without request bodies, return JSON errors for API
+calls, and limit slow or costly features. Request IDs are checked before they are written to
+logs.
 """
 
 from __future__ import annotations
@@ -85,7 +74,7 @@ def install(app, name: str) -> logging.Logger:
 
 
 def rate_limited(per_minute: int):
-    """Allow at most ``per_minute`` calls per client address for this endpoint."""
+    """Allow each client address to call this route up to the set number of times per minute."""
     def decorator(view):
         @wraps(view)
         def wrapper(*args, **kwargs):
@@ -109,6 +98,6 @@ def rate_limited(per_minute: int):
 
 
 def reset_rate_limits() -> None:
-    """Test helper: forget all recorded calls."""
+    """Test helper that clears saved request counts."""
     with _lock:
         _hits.clear()

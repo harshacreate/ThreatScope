@@ -18,8 +18,15 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: python -m pip install -r requirements.txt
-      - run: python -m pytest -q
+      - run: python -m pytest -q --cov=threatscope --cov-report=xml --cov-report=term-missing
       - run: python -m threatscope.evaluate
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
   sigma-check:
     runs-on: ubuntu-latest
     steps:

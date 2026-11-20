@@ -1,5 +1,9 @@
 # ThreatScope
 
+![ThreatScope demo](demo/threatscope-demo.gif)
+
+Walkthrough fixtures use generated RFC 5737 test IP logs; the public-data result below is separate.
+
 ThreatScope reads sample computer logs and network traffic to find possible attacks. It shows alerts, the evidence behind them, and links to MITRE ATT&CK.
 
 Design Project III, Semester V (2025–26), B.Tech Cyber Security, Hindustan Institute of Technology and Science. Project by Malepati Sree Harsha.
@@ -37,6 +41,14 @@ A separate public sample had no labels for safe events, so false alerts could no
 ## Run it
 
 With Docker:
+
+After a version tag is published, you can also run the dashboard image (the full isolated scanner lab is available with Compose):
+
+```bash
+docker run --rm -p 127.0.0.1:8103:8000 ghcr.io/harshacreate/threatscope:latest
+```
+
+Or build the full lab locally with Compose:
 
 ```bash
 docker compose up --build -d

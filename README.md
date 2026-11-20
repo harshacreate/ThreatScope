@@ -1,168 +1,64 @@
 # ThreatScope
 
-**A reproducible SOC detection lab with ground-truth rule evaluation.**
+ThreatScope reads sample computer logs and network traffic to find possible attacks. It shows alerts, the evidence behind them, and links to MITRE ATT&CK.
 
-Design Project III · Semester V (2025–26) · B.Tech, specialisation in Cyber Security, DISC, Hindustan Institute of Technology and Science, Chennai · by **Malepati Sree Harsha**
+Design Project III, Semester V (2025–26), B.Tech Cyber Security, Hindustan Institute of Technology and Science. Project by Malepati Sree Harsha.
 
-![tests](https://img.shields.io/badge/tests-14%20passing-2ea44f) ![python](https://img.shields.io/badge/python-3.12-3776AB) ![docker](https://img.shields.io/badge/docker-compose-2496ED) ![license](https://img.shields.io/badge/license-MIT-blue) ![focus](https://img.shields.io/badge/focus-detection%20engineering-4f8a1e) ![attack](https://img.shields.io/badge/MITRE-ATT%26CK-red)
+![ThreatScope dashboard](docs/screenshots/01-soc-overview.png)
 
-![ThreatScope SOC console](docs/screenshots/01-soc-overview.png)
+## Safety and test data
 
-> **Lab scope:** all bundled telemetry is synthetic (documentation IP ranges). Nmap and OWASP ZAP can reach only the bundled `demo-target` container on an internal Docker network with no route out. Use only data you are authorized to inspect.
+The logs and network traffic in this project are made for testing. Nmap and OWASP ZAP can reach only the sample target inside a private Docker network. They cannot scan outside it.
 
-ThreatScope parses authentication, firewall, web and process logs plus packet captures. It raises **MITRE ATT&CK-mapped alerts** with evidence and response playbooks, and runs **TShark, Suricata, Nmap and OWASP ZAP** inside an isolated lab. Its research contribution is a **ground-truth benchmark**: every rule is scored against injected incidents over 25 seeds, with threshold sweeps that show where each rule starts to fail.
+## Results
 
-## Real-data results
+The rules were checked on sample data in 25 test runs.
 
-OTRF Security-Datasets (Mordor), atomic Windows execution, dataset SDWIN-190518182022 at upstream commit d9d40ef123d2c87d5d3df28c96bcab4f0faccc87. The sample contains 2,067 events and documents one Local PowerShell Execution scenario. It has no event-level benign/malicious labels or benign scenario split.
+| Check | Result |
+|---|---:|
+| Events checked | 918 |
+| Alerts shown | 6 |
+| Correct alerts across test runs | 150 |
+| False alerts across test runs | 0 |
+| Automated tests | 14 passed |
 
-| Rule | Hits | Misses | False alerts |
-|---|---:|---:|---:|
-| brute_force_login | N/A | N/A | N/A |
-| impossible_travel | N/A | N/A | N/A |
-| port_scan | N/A | N/A | N/A |
-| data_exfil | N/A | N/A | N/A |
-| suspicious_process | **0** | **1** | N/A |
+These results apply only to the sample cases the rules were built to find. They do not show how the rules would work on real systems.
 
-The existing suspicious_process rule missed the documented encoded PowerShell scenario. False alerts are not estimable without benign labels; the other rules have no applicable labeled events. The pinned repository LICENSE is MIT, while its README also contains a GPL-3.0 reference; the archive is not committed. See [Real-data evaluation](docs/REAL_DATA.md) for field mapping, provenance, license caveat, and exact reproduction command.
+A separate public sample had no labels for safe events, so false alerts could not be counted. One rule missed its PowerShell example. See [Real data notes](docs/REAL_DATA.md).
 
-## Synthetic benchmark results (measured)
+## What it does
 
-| Result | Value |
-|---|---|
-| Bundled evidence | 918 events → 6 alerts across 5 ATT&CK techniques |
-| Ground truth over 25 seeds (default thresholds) | **150 TP · 0 FP · 0 FN** |
-| Safe threshold bands | brute force **3–16** failures / 120 s · port scan **5–28** ports / 60 s |
-| Real tools on the bundled PCAP / lab | TShark 62 packets · Suricata 3 alerts · Nmap 1 open port · ZAP 16 passive findings |
-| Automated tests | **14 / 14 passing** |
-| Full dashboard call (parse + 5 rules + TShark + Suricata) | p50 126.9 ms · p95 143.5 ms |
+- Reads login, firewall, web, and process logs.
+- Checks sample network traffic with TShark and Suricata.
+- Uses Nmap and OWASP ZAP only on the sample target.
+- Shows alerts with evidence and next steps.
+- Compares rule results with known sample events.
 
-| Rule | TP | FP | FN | Precision | Recall |
-|---|---|---|---|---|---|
-| `brute_force_login` | 25 | 0 | 0 | 1.00 | 1.00 |
-| `data_exfil` | 25 | 0 | 0 | 1.00 | 1.00 |
-| `impossible_travel` | 25 | 0 | 0 | 1.00 | 1.00 |
-| `port_scan` | 25 | 0 | 0 | 1.00 | 1.00 |
-| `suspicious_process` | 50 | 0 | 0 | 1.00 | 1.00 |
+## Run it
 
-![Threshold sweep](docs/diagrams/chart-threshold-sweep.png)
-
-Perfect scores reflect simple synthetic noise and rules written for these scenarios. The sweeps show the thresholds at which benign noise starts to fire, and where an injected attack slips under the rule. They are separate from the real-data scenario result above.
-
-## Detections
-
-| Rule | ATT&CK | Logic |
-|---|---|---|
-| `brute_force_login` | T1110 | ≥ 8 failures from one IP within 120 s (tunable) |
-| `impossible_travel` | T1078 | Same user logs in from internal and external IPs within 600 s |
-| `port_scan` | T1046 | ≥ 15 distinct ports from one IP within 60 s (tunable) |
-| `data_exfil` | T1041 | ≥ 5 MB transferred by one source |
-| `suspicious_process` | T1059 | Encoded PowerShell, curl/wget, reverse shells, shells spawned by web servers |
-
-## Architecture and isolation
-
-![Deployment](docs/diagrams/deployment.png)
-
-Only the dashboard publishes a port, on 127.0.0.1:8103. It joins an extra `web` network because Docker does not publish ports for containers that are only on an internal network. Fixing that silent bug was part of this release. `demo-target` and ZAP live only on `lab` (`internal: true`).
-
-## Quick start
+With Docker:
 
 ```bash
-docker compose up --build -d      # first run pulls OWASP ZAP (~1.5 GB)
+docker compose up --build -d
 open http://localhost:8103
 docker compose down
 ```
 
-Optional authentication: set `THREATSCOPE_API_TOKEN` (see `.env.example`). Every `/api/` call then needs `Authorization: Bearer <token>`, and the console prompts for it.
+Without Docker:
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 python -m pip install -r requirements.txt
-make test        # 14 tests
-make evaluate    # fixture rule counts
-make benchmark   # ground truth + threshold sweeps
-make run         # http://127.0.0.1:8000 (TShark/Suricata/Nmap show as unavailable outside Docker)
+make test
+make evaluate
+make run
 ```
 
-## Security
+Some network tools work only with Docker. See [Security notes](SECURITY.md) before using the app.
 
-Scan targets are constants in code and the lab network is internal-only. The platform has strict CSP and OWASP headers, an audit log for scans and authentication failures, and rate limits (Nmap 4/min, ZAP 2/min, uploads 20/min). Optional bearer-token authentication uses a constant-time comparison. Uploads are processed in memory and temporary PCAPs are deleted. Containers are non-root with `no-new-privileges` and memory limits. See [SECURITY.md](SECURITY.md).
+## Limits
 
-## Documentation
+The sample data is made up. The public sample has no labels for safe events, and the rules cover only a few cases. This is a learning project, not a security monitor for real systems.
 
-| Document | |
-|---|---|
-| [Project report (PDF)](report/ThreatScope_Project_Report.pdf) · [Word](report/ThreatScope_Project_Report.docx) | IEEE-style report: literature survey, SRS, UML/DFD, implementation, testing, results, references |
-| [Presentation (PowerPoint)](report/ThreatScope_Presentation.pptx) · [PDF](report/ThreatScope_Presentation.pdf) | Review / viva slides with speaker notes |
-| [Synopsis](report/ThreatScope_Synopsis.pdf) | Two-page project synopsis |
-| [Demo script](report/Demo_Script.md) | Timed live-demonstration walkthrough |
-| [Viva questions](report/Viva_Questions.md) | Likely examiner / interviewer questions with answers |
-| [Portfolio copy](report/Portfolio_Copy.md) | GitHub description, LinkedIn and resume text |
-| [Real-data evaluation](docs/REAL_DATA.md) | Dataset version, license caveat, schema mapping, results, and reproduction command |
-| [Showcase page](docs/index.html) | Landing page for GitHub Pages (Settings → Pages → `main` / `docs`) |
-| [Security policy](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) | Threat model, disclosure process, workflow, history |
-
-## Limitations and roadmap
-
-- The pinned public sample has no benign event labels; false-alert rates cannot be estimated, and the suspicious_process rule missed its one documented PowerShell scenario.
-- Single-source rules. Next: cross-source actor correlation (scan → brute force → exfil).
-- Shared token, no roles. Next: per-analyst accounts and case management.
-- Rules in Python. Next: Sigma rules tested with the same benchmark harness.
-
-## Repository layout
-
-```
-├── .dockerignore
-├── .env.example
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── .gitignore
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── Dockerfile
-├── LICENSE
-├── Makefile
-├── PROJECT_OVERVIEW.md
-├── README.md
-├── SECURITY.md
-├── Start.command
-├── docker-compose.yml
-├── docs/
-│   ├── README.md
-│   ├── REAL_DATA.md
-│   ├── diagrams/  (11 images)
-│   ├── index.html
-│   └── screenshots/  (7 images)
-├── requirements.txt
-├── scripts/
-│   └── loadtest.py
-├── tests/
-│   ├── test_security.py
-│   └── test_threatscope.py
-└── threatscope/
-    ├── __init__.py
-    ├── app.py
-    ├── benchmark.py
-    ├── real_data.py
-    ├── data/
-    │   ├── auth.log
-    │   ├── firewall.log
-    │   ├── process.log
-    │   ├── sample-traffic.pcap
-    │   └── web.log
-    ├── demo_target.py
-    ├── detect.py
-    ├── evaluate.py
-    ├── gen_data.py
-    ├── nettools.py
-    ├── rules/
-    │   └── local-demo.rules
-    ├── static/
-    │   └── index.html
-    └── web_security.py
-```
-
-## License and data
-
-MIT, see [LICENSE](LICENSE). Bundled logs and the PCAP are locally generated synthetic data. Tool images remain under their upstream licenses.
+The code is under the MIT license.

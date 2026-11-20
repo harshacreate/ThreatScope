@@ -2,7 +2,7 @@ title: ThreatScope Firewall Denied Connection
 id: 634cd15d-ea70-5604-9cb1-2047484128e5
 name: threatscope_firewall_denied_connection
 status: test
-description: Matches one firewall deny event for the ThreatScope normalized firewall input mapping.
+description: Finds a denied connection in the ThreatScope firewall log format.
 author: harshacreate
 date: 2026/11/11
 logsource:
@@ -17,7 +17,7 @@ fields:
   - DestinationIp
   - DestinationPort
 falsepositives:
-  - Policy-blocked client connections
+  - Connections blocked by network rules.
 level: low
 tags:
   - attack.discovery
@@ -27,7 +27,7 @@ title: ThreatScope Firewall Port Scan
 id: a65ebd73-7169-5c45-968b-a5c0c7577a7e
 name: threatscope_firewall_port_scan
 status: test
-description: Finds at least 15 distinct denied destination ports from one source within a one-minute Sigma timespan.
+description: Finds 15 or more blocked ports from the same source in one minute.
 author: harshacreate
 date: 2026/11/11
 correlation:

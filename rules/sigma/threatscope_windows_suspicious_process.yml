@@ -2,7 +2,7 @@ title: ThreatScope Windows Suspicious Process Execution
 id: 22ebea3f-8097-5995-acc9-12660a4041e8
 name: threatscope_windows_suspicious_process
 status: test
-description: Matches encoded PowerShell or a command shell launched by a web-server process in Sysmon process-creation telemetry.
+description: Finds PowerShell commands with encoded text, or a command shell started by a web server. This rule uses Sysmon process events.
 author: harshacreate
 date: 2026/11/11
 logsource:
@@ -30,7 +30,7 @@ fields:
   - Image
   - CommandLine
 falsepositives:
-  - Authorized automation using encoded PowerShell
+  - Approved scripts that use encoded PowerShell.
 level: high
 tags:
   - attack.execution

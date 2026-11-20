@@ -2,7 +2,7 @@ title: ThreatScope Port Scan Followed by SSH Brute Force
 id: 3a1aba80-ebb4-5495-880d-bb529c1f6d8a
 name: threatscope_scan_then_bruteforce
 status: test
-description: Correlates a firewall port-scan detection followed by an SSH brute-force detection from the same source within 30 minutes.
+description: Finds a port scan followed by many failed SSH logins from the same source within 30 minutes.
 author: harshacreate
 date: 2026/11/11
 correlation:

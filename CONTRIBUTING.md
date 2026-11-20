@@ -2,7 +2,7 @@
 
 Thanks for taking a look at ThreatScope.
 
-## Development setup
+## Set up
 
 ```bash
 python3 -m venv .venv
@@ -13,27 +13,26 @@ make test
 make run                    # http://127.0.0.1:8000
 ```
 
-The full toolchain (external security tools) is only guaranteed inside Docker:
+All external security tools are supported in Docker:
 
 ```bash
 docker compose up --build -d   # http://localhost:8103
 ```
 
-## Workflow
+## Make a change
 
-1. Create a branch from `main` (`feature/<short-name>` or `fix/<short-name>`).
-2. Keep commits small and focused; write messages in the imperative ("Add X", "Fix Y").
-3. Add or update tests in `tests/` for every behaviour change. `make test` must pass.
-4. Update `README.md` and `CHANGELOG.md` when behaviour or usage changes.
-5. Open a pull request describing **what** changed, **why**, and how you tested it.
+1. Start a branch from `main`. Name it `feature/<short-name>` or `fix/<short-name>`.
+2. Keep each commit small. Use a short message such as `Add X` or `Fix Y`.
+3. Add or update tests for each change. Run `make test` and check that it passes.
+4. Update `README.md` and `CHANGELOG.md` when the app or its use changes.
+5. Open a pull request. Say what changed, why, and how you tested it.
 
-## Code style
+## Code
 
-- Python 3.9+ with type hints on public functions.
-- Keep parsing, detection/analysis logic, tool adapters and the web layer in separate modules.
-- Never log request bodies or secrets. Never add a feature that lets the browser choose a
-  scan or lookup target outside the documented scope.
+- Use Python 3.9 or newer. Add type hints to public functions.
+- Keep input reading, security checks, tool calls, and web code in separate files.
+- Do not log request data or secrets. Do not let the browser choose a scan or lookup target outside the stated limits.
 
 ## Security issues
 
-Do not open public issues for vulnerabilities. See [SECURITY.md](SECURITY.md).
+Do not post security issues in public. See [SECURITY.md](SECURITY.md) for how to report one.

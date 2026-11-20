@@ -21,7 +21,7 @@ jobs:
       - run: python -m pytest -q --cov=threatscope --cov-report=xml --cov-report=term-missing
       - run: python -m threatscope.evaluate
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         if: always()
         with:
           files: ./coverage.xml

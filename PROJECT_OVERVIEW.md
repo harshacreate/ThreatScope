@@ -1,26 +1,31 @@
-# ThreatScope — project overview
+# ThreatScope project overview
 
-**Course:** Design Project III · Semester V · 2025–26 · **Author:** Malepati Sree Harsha · **Focus:** local SOC triage and detection engineering
+ThreatScope is a local lab for reading logs and sample network traffic. It finds possible attacks and shows alerts with the evidence.
 
-## Goal
+## What it does
 
-Build an explainable defensive lab that parses multiple event types, correlates simple detections, and inspects a synthetic packet capture while keeping active tools inside a local Compose network.
+- Reads login, firewall, web, and process logs.
+- Checks sample network traffic with TShark and Suricata.
+- Uses Nmap and OWASP ZAP only on the sample target in a private Docker network.
+- Shows alerts with links to MITRE ATT&CK and next steps.
+- Checks each rule against known sample events.
 
-## Components
+## Main files
 
-- `threatscope/detect.py` — event parsers and rule logic.
-- `threatscope/gen_data.py` and `threatscope/data/` — deterministic synthetic log fixtures.
-- `threatscope/nettools.py` — PCAP generation, TShark/Suricata adapters, and target-locked Nmap/ZAP calls.
-- `threatscope/app.py` — Flask API, upload handling, and summary endpoints.
-- `threatscope/demo_target.py` — intentionally vulnerable demo service, exposed only to the private Compose network.
-- `threatscope/static/index.html` — interactive analyst dashboard.
-- `tests/` — parser, rule, API, and scanner-scope tests.
+- `threatscope/detect.py` reads events and checks the rules.
+- `threatscope/gen_data.py` makes sample logs.
+- `threatscope/nettools.py` runs the network tools.
+- `threatscope/app.py` starts the web app.
+- `threatscope/demo_target.py` starts the sample target.
+- `threatscope/static/index.html` has the web page.
 
-## Data and scope
+## Data and limits
 
-The checked-in events are synthetic and use documentation ranges. No public incident data is bundled. Uploaded logs are processed for the current request only; uploaded captures use temporary files. The Nmap and ZAP wrappers do not accept a target from the client.
+The logs and network traffic are made for this project. The public sample has no labels for safe events, so false alerts cannot be counted.
 
-## Run and verify
+Nmap and OWASP ZAP can reach only the sample target in the private Docker network. This is a learning project, not a security monitor for real systems.
+
+## Run it
 
 ```bash
 docker compose up --build -d
@@ -28,4 +33,4 @@ make test
 make evaluate
 ```
 
-Open `http://localhost:8103`. See the main README for limitations and tool scope.
+Open http://localhost:8103. See the README for more details.

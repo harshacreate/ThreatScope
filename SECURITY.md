@@ -19,7 +19,7 @@ You may test your own local copy. Do not test a system or account unless you own
 
 ## What this app handles
 
-ThreatScope reads log files and packet captures. These may hold private data. It also saves scan results for the demo container. The browser and Flask app run on the same computer. It has no user accounts. The API can use one shared access token.
+ThreatScope reads log files and packet captures. These may hold private data. It shows scan results from the demo container. The browser and Flask app run on the same computer. It has no user accounts. The API can use one shared access token.
 
 | Risk | What the app does |
 |---|---|

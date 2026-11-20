@@ -57,6 +57,10 @@ make run
 
 Some network tools work only with Docker. See [Security notes](SECURITY.md) before using the app.
 
+## Sigma rules and correlation
+
+The validated Sigma subset covers SSH failures, firewall port scans, scan-to-brute-force sequences, and selected Sysmon process events. The Python engine also links firewall, authentication, and web evidence by source IP, including at least 5 MB of deduplicated web egress within a 30-minute chain window. It keeps the individual rule alerts visible. See [Sigma representations](docs/SIGMA.md) for the supported subset and differences in field mapping and time-window behavior.
+
 ## Limits
 
 The sample data is made up. The public sample has no labels for safe events, and the rules cover only a few cases. This is a learning project, not a security monitor for real systems.

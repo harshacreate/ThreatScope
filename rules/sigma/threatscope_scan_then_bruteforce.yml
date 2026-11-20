@@ -1,0 +1,20 @@
+title: ThreatScope Port Scan Followed by SSH Brute Force
+id: 3a1aba80-ebb4-5495-880d-bb529c1f6d8a
+name: threatscope_scan_then_bruteforce
+status: test
+description: Correlates a firewall port-scan detection followed by an SSH brute-force detection from the same source within 30 minutes.
+author: harshacreate
+date: 2026/11/11
+correlation:
+  type: temporal_ordered
+  rules:
+    - threatscope_firewall_port_scan
+    - threatscope_linux_ssh_brute_force
+  group-by:
+    - SourceIp
+  timespan: 30m
+level: high
+tags:
+  - attack.discovery
+  - attack.t1046
+  - attack.t1110

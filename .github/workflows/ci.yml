@@ -20,3 +20,15 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: python -m pytest -q
       - run: python -m threatscope.evaluate
+  sigma-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-sigma.txt
+      - run: python -m pip install -r requirements-sigma.txt
+      - run: sigma version
+      - run: sigma check --fail-on-error --fail-on-issues rules/sigma/

@@ -6,7 +6,7 @@ Walkthrough fixtures use generated RFC 5737 test IP logs; the public-data result
 
 ThreatScope reads sample computer logs and network traffic to find possible attacks. It shows alerts, the evidence behind them, and links to MITRE ATT&CK.
 
-Design Project III, Semester V (2025–26), B.Tech Cyber Security, Hindustan Institute of Technology and Science. Project by Malepati Sree Harsha.
+Design Project III, Semester V (2025 to 2026), B.Tech Cyber Security, Hindustan Institute of Technology and Science. Project by Malepati Sree Harsha.
 
 ![ThreatScope dashboard](docs/screenshots/01-soc-overview.png)
 

@@ -1,13 +1,8 @@
-"""Score the detection rules against known injected incidents.
-
-Usage: ``python -m threatscope.benchmark`` (prints JSON).
-
-``gen_data`` embeds a fixed set of attack scenarios inside random benign noise.
-Because the injected incidents are known, every alert can be labelled a true or
-false positive. Repeating this over many seeds varies the noise, and a threshold
-sweep shows how the brute-force and port-scan thresholds trade missed incidents
-against noise. These are SYNTHETIC results: they show the rules behave as
-designed, not how they would perform on production telemetry.
+"""Check the detection rules against known sample attacks. Run python -m threatscope.benchmark
+to print the results as JSON. The sample data mixes known attacks with random safe activity,
+so each alert can be checked. Repeating the check with different random data shows how the
+rules respond to noise. These results use made-up data. They show how the rules work on
+these examples, not how they work on real systems.
 """
 
 from __future__ import annotations
@@ -21,7 +16,7 @@ from threatscope import gen_data
 from threatscope.detect import (parse_auth, parse_fw, parse_process, parse_web,
                                 run_all)
 
-# (rule, source) pairs that gen_data injects on purpose.
+# Rule and source pairs added to the sample data on purpose.
 GROUND_TRUTH = {
     ("brute_force_login", "203.0.113.9"),
     ("impossible_travel", "bob"),

@@ -1,6 +1,6 @@
-# ThreatScope real-data test
+ThreatScope real-data test
 
-## Result
+Result
 
 This test uses one OTRF Security-Datasets (Mordor) sample: Local PowerShell Execution on Windows. The saved file has 2,067 JSON lines, including five Sysmon Process Create events. The source describes one PowerShell attack using technique T1059.001. It does not label each event as safe or harmful, and it has no safe test case.
 
@@ -16,7 +16,7 @@ A small adapter changed the five Sysmon process events into the format ThreatSco
 
 These counts are for one attack case. They cannot be compared with the test that uses made-up events. This check does not show how well the app works in general.
 
-## Source and license
+Source and license
 
 - Dataset: OTRF Security-Datasets (Mordor), Windows execution sample.
 - Dataset ID: SDWIN-190518182022.
@@ -26,7 +26,7 @@ These counts are for one attack case. They cannot be compared with the test that
 - Scenario details: [Local PowerShell Execution, Threat Hunter Playbook](https://threathunterplaybook.com/hunts/windows/190410-LocalPwshExecution/notebook.html).
 - Known result: one attack case using T1059.001. This saved data has no labels for single events and no safe cases.
 
-## Field mapping
+Field mapping
 
 | OTRF Sysmon field | ThreatScope field |
 |---|---|
@@ -40,7 +40,7 @@ These counts are for one attack case. They cannot be compared with the test that
 
 Only suspicious_process can be checked with this sample. We treat all the events as one attack case. We do not label any event as safe. Since the source has no safe and harmful labels for single events, it cannot show false-alert counts for any rule.
 
-## Run the test again
+Run the test again
 
 From the project folder, run:
 

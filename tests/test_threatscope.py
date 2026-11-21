@@ -168,6 +168,6 @@ def test_benchmark_finds_every_injected_incident_without_noise_alerts():
     report = run(seeds=5)
     assert report["overall"]["tp"] == 5 * len(GROUND_TRUTH)
     assert report["overall"]["fp"] == 0 and report["overall"]["fn"] == 0
-    # A threshold above the injected burst size must miss it (the sweep is real).
+    # A threshold above the sample burst size should miss it.
     sweep = {row["threshold"]: row for row in report["sweeps"]["brute_force_threshold"]}
     assert sweep[20]["recall"] == 0.0

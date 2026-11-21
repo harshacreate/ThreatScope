@@ -1,4 +1,4 @@
-"""Print deterministic counts for the checked-in synthetic detection fixture."""
+"""Print the same score counts for the sample detection data each time."""
 
 from __future__ import annotations
 

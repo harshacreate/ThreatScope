@@ -1,4 +1,4 @@
-# Project files
+Project files
 
 This folder has the project page, pictures, and diagrams.
 

@@ -1,4 +1,4 @@
-# ThreatScope interview questions
+ThreatScope interview questions
 
 1. The test shows perfect precision and recall. Should I trust those numbers?
 

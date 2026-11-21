@@ -1,8 +1,8 @@
-# Sigma rules and how they differ
+Sigma rules and how they differ
 
 ThreatScope uses its Python rules in the dashboard. This folder also has Sigma rules, a shared format for security rules. These rules cover SSH login failures, firewall port scans, a scan followed by a login attack, and some Windows process events.
 
-## Check the rules
+Check the rules
 
 Use Python 3.9 or newer. Install the pinned Sigma CLI and pySigma versions with these commands:
 
@@ -14,7 +14,7 @@ sigma check --fail-on-error --fail-on-issues rules/sigma/
 
 The check looks for rule format and information errors. A passing check does not mean that every SIEM tool can run every kind of rule. Sigma has rules that count events, count unique values, use time limits, or check that events happen in order. Tool support can vary. See the [Sigma correlation guide](https://sigmahq.io/docs/meta/correlations.html) and [Sigma rule format](https://sigmahq.io/docs/basics/rules.html).
 
-## Fields used by the rules
+Fields used by the rules
 
 The Sigma rules expect log fields to have common names. The sample logs in ThreatScope use shorter lines. A log reader or SIEM parser must change them to the fields below.
 
@@ -24,7 +24,7 @@ The Sigma rules expect log fields to have common names. The sample logs in Threa
 | Firewall | `Action`, `SourceIp`, `DestinationIp`, `DestinationPort` | Reads `action`, `src`, `dst`, `dport` key and value pairs |
 | Windows process | Sysmon `Image`, `ParentImage`, `CommandLine`, `Computer`, `User` | Not in the general `process.log`; use the Sysmon field map in the real data guide |
 
-## Compare with the sample test
+Compare with the sample test
 
 Run `python -m threatscope.evaluate` to see the Python rule counts. The table compares those counts with the Sigma rules on the same saved sample logs.
 
@@ -37,7 +37,7 @@ Run `python -m threatscope.evaluate` to see the Python rule counts. The table co
 
 These results only compare the saved sample logs. They do not show that the rules give the same results on all logs. Some SIEM tools group time in fixed blocks, while ThreatScope checks a moving time range. Some tools do not support `temporal_ordered` or `value_count`. The Python port scan rule counts different ports across all firewall actions. The Sigma rule here counts only denied connections. These choices can lead to different results.
 
-## ThreatScope event sequence check
+ThreatScope event sequence check
 
 ThreatScope also has its own rule for linked events. It keeps each rule alert and adds a separate `correlated_alerts` result when it finds a `port_scan → brute_force_login → data_exfil` sequence from the same non-empty source IP within 30 minutes. At least 5 MB of web events, after repeat events are removed, must follow the login alert. The full sequence must fit within 30 minutes. The dashboard shows the source, rule, times, byte counts, and a sample of the web requests.
 

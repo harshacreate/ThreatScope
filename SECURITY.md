@@ -1,15 +1,15 @@
-# Security
+Security
 
 ThreatScope is a learning project for Design Project III, Semester V of B.Tech Cyber Security. It runs on your computer with local data. Do not use it on a public network.
 
-## Supported versions
+Supported versions
 
 | Version | Supported |
 |---|---|
 | 1.1.x (main) | Yes |
 | Earlier versions | No |
 
-## Report a security issue
+Report a security issue
 
 Do not report a security issue in a public issue. Open GitHub's Security tab and choose Report a vulnerability. Include the version or commit, steps to repeat the problem, and what happened.
 
@@ -17,7 +17,7 @@ I aim to reply within 7 days. If I confirm the issue, I aim to share a fix or pl
 
 You may test your own copy on your computer. Do not test a system or account unless you own it or have permission.
 
-## What this app reads
+What this app reads
 
 ThreatScope reads log files and packet captures. They may contain private data. It shows scan results from the sample container. Your browser and the Flask app run on the same computer. There are no user accounts. The API can use one shared access token.
 
@@ -32,7 +32,7 @@ ThreatScope reads log files and packet captures. They may contain private data. 
 | The container has too much access | It runs as user 10001, blocks new permissions, limits memory, and uses temporary space for /tmp. |
 | Log text tries to run a script | The page safely shows text from logs and uses a same-origin Content Security Policy. |
 
-## How the app stays safer
+How the app stays safer
 
 - Each API route checks the input type, size, and allowed range. Errors use JSON.
 - Each reply has security headers. API replies use Cache-Control: no-store so the browser does not save them.
@@ -41,6 +41,6 @@ ThreatScope reads log files and packet captures. They may contain private data. 
 - Program calls use fixed arguments, do not use a shell, and have time limits.
 - The Docker app does not run as the root user. CI runs the tests after each push.
 
-## Limits
+Limits
 
 This project has not had an outside security review. Its one shared API token is optional. There are no user accounts or roles. By default, the app runs for one person on one computer. See the README for other limits.

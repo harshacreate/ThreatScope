@@ -1,6 +1,6 @@
-# ThreatScope demo scripts
+ThreatScope demo scripts
 
-## 75-second demo draft
+75-second demo draft
 
 This is a draft. No video has been recorded yet.
 
@@ -17,7 +17,7 @@ The first start downloads the OWASP ZAP image, which is about 1.5 GB. Do this be
 | 0:35 to 0:58 | Open Detection Quality. Run the test and show the right alerts, wrong alerts, and missed alerts for each rule. | “This test runs made-up attack events with sample background noise 25 times. Across the rules, it found 150 attacks, with no wrong alerts and no missed attacks.” |
 | 0:58 to 1:15 | Show the results for each rule and the note about the test limits. | “These perfect results only apply to the simple sample cases the rules were made for. They give us a clear starting point. They do not show how the rules would work on real attacks or other data.” |
 
-## Full demo (7 minutes)
+Full demo (7 minutes)
 
 Start with `docker compose up --build -d`. ZAP may take a minute to start. Open http://localhost:8103 and check the status message.
 

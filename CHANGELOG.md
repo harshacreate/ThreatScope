@@ -1,10 +1,10 @@
-# Change log
+Change log
 
 This page lists the main changes to ThreatScope.
 
-## [1.1.0] - 2026-11-10
+Version 1.1.0: 2026-11-10
 
-### Added and changed
+Added and changed
 
 - Added an optional access token for every API route. Set it with THREATSCOPE_API_TOKEN. If a request has no valid token, it gets HTTP 401 and the console asks for the token.
 - Changed the Docker Compose networks. The dashboard now uses a web network and opens at 127.0.0.1:8103. Scan targets stay inside the private lab network.
@@ -16,8 +16,8 @@ This page lists the main changes to ThreatScope.
 - Added Sigma rules for SSH, firewall port scans, some Sysmon process events, and scan then login attacks in the right order.
 - Added evidence trails that link firewall scans, SSH login attacks, and web traffic leaving the system by source IP. They check time order, missing IP values, and repeated events.
 
-## [1.0.0] - 2026-11-10
+Version 1.0.0: 2026-11-10
 
-### Added
+Added
 
 - First full release. It includes a Flask API, a dashboard, links to outside tools, a Docker image and Compose file, tests, and GitHub Actions checks.

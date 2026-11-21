@@ -1,4 +1,4 @@
-# ThreatScope
+ThreatScope
 
 ![ThreatScope demo](demo/threatscope-demo.gif)
 
@@ -10,11 +10,11 @@ Design Project III, Semester V (2025 to 2026), B.Tech Cyber Security, Hindustan 
 
 ![ThreatScope dashboard](docs/screenshots/01-soc-overview.png)
 
-## Safety and test data
+Safety and test data
 
 The logs and network traffic in this project are made for testing. Nmap and OWASP ZAP can reach only the sample target inside a private Docker network. They cannot scan outside it.
 
-## Results
+Results
 
 The rules were checked on sample data in 25 test runs.
 
@@ -30,7 +30,7 @@ These results apply only to the sample cases the rules were built to find. They 
 
 A separate public sample had no labels for safe events, so false alerts could not be counted. One rule missed its PowerShell example. See [Real data notes](docs/REAL_DATA.md).
 
-## What it does
+What it does
 
 - Reads login, firewall, web, and process logs.
 - Checks sample network traffic with TShark and Suricata.
@@ -38,7 +38,7 @@ A separate public sample had no labels for safe events, so false alerts could no
 - Shows alerts with evidence and next steps.
 - Compares rule results with known sample events.
 
-## Run it
+Run it
 
 With Docker:
 
@@ -69,11 +69,11 @@ make run
 
 Some network tools work only with Docker. See [Security notes](SECURITY.md) before using the app.
 
-## Sigma rules and correlation
+Sigma rules and correlation
 
 The validated Sigma subset covers SSH failures, firewall port scans, scan-to-brute-force sequences, and selected Sysmon process events. The Python engine also links firewall, authentication, and web evidence by source IP, including at least 5 MB of deduplicated web egress within a 30-minute chain window. It keeps the individual rule alerts visible. See [Sigma representations](docs/SIGMA.md) for the supported subset and differences in field mapping and time-window behavior.
 
-## Limits
+Limits
 
 The sample data is made up. The public sample has no labels for safe events, and the rules cover only a few cases. This is a learning project, not a security monitor for real systems.
 

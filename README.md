@@ -24,7 +24,7 @@ The rules were checked on sample data in 25 test runs.
 | Alerts shown | 6 |
 | Correct alerts across test runs | 150 |
 | False alerts across test runs | 0 |
-| Automated tests | 14 passed |
+| Automated tests | 17 passed |
 
 These results apply only to the sample cases the rules were built to find. They do not show how the rules would work on real systems.
 

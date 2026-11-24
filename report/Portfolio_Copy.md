@@ -12,8 +12,10 @@ In 25 test runs, the rules found 150 sample attacks and raised no false alerts. 
 
 Resume notes
 
-- Made a local page for checking sample logs and network traffic.
-- Added alerts with evidence and next steps.
-- Kept Nmap and OWASP ZAP inside a private Docker network with a fixed sample target.
+Made a local page for checking sample logs and network traffic.
+
+Added alerts with evidence and next steps.
+
+Kept Nmap and OWASP ZAP inside a private Docker network with a fixed sample target.
 
 See the main README and Real data notes for the test details and limits.

@@ -29,9 +29,11 @@ Make a change
 
 Code rules
 
-- Use Python 3.9 or newer. Add type notes to public functions.
-- Keep input reading, security checks, tool calls, and web code in separate files.
-- Do not save request data or secrets in logs. Keep scan and lookup targets within the set limits.
+Use Python 3.9 or newer. Add type notes to public functions.
+
+Keep input reading, security checks, tool calls, and web code in separate files.
+
+Do not save request data or secrets in logs. Keep scan and lookup targets within the set limits.
 
 Security issues
 

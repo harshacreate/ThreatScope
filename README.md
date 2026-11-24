@@ -18,13 +18,15 @@ Results
 
 The rules were checked on sample data in 25 test runs.
 
-| Check | Result |
-|---|---:|
-| Events checked | 918 |
-| Alerts shown | 6 |
-| Correct alerts across test runs | 150 |
-| False alerts across test runs | 0 |
-| Automated tests | 17 passed |
+Events checked: 918
+
+Alerts shown: 6
+
+Correct alerts across test runs: 150
+
+False alerts across test runs: 0
+
+Automated tests: 17 passed
 
 These results apply only to the sample cases the rules were built to find. They do not show how the rules would work on real systems.
 
@@ -32,11 +34,15 @@ A separate public sample had no labels for safe events, so false alerts could no
 
 What it does
 
-- Reads login, firewall, web, and process logs.
-- Checks sample network traffic with TShark and Suricata.
-- Uses Nmap and OWASP ZAP only on the sample target.
-- Shows alerts with evidence and next steps.
-- Compares rule results with known sample events.
+Reads login, firewall, web, and process logs.
+
+Checks sample network traffic with TShark and Suricata.
+
+Uses Nmap and OWASP ZAP only on the sample target.
+
+Shows alerts with evidence and next steps.
+
+Compares rule results with known sample events.
 
 Run it
 

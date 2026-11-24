@@ -18,22 +18,23 @@ Fields used by the rules
 
 The Sigma rules expect log fields to have common names. The sample logs in ThreatScope use shorter lines. A log reader or SIEM parser must change them to the fields below.
 
-| Rule data | Fields the Sigma rules expect | Fields in the ThreatScope sample |
-|---|---|---|
-| Linux SSH sign-in | `Message`, `SourceIp`, `TargetUserName` | Finds `Failed password`; reads the source IP and user from each sign-in line |
-| Firewall | `Action`, `SourceIp`, `DestinationIp`, `DestinationPort` | Reads `action`, `src`, `dst`, `dport` key and value pairs |
-| Windows process | Sysmon `Image`, `ParentImage`, `CommandLine`, `Computer`, `User` | Not in the general `process.log`; use the Sysmon field map in the real data guide |
+Rule data: Linux SSH sign-in; Fields the Sigma rules expect: `Message`, `SourceIp`, `TargetUserName`; Fields in the ThreatScope sample: Finds `Failed password`; reads the source IP and user from each sign-in line
+
+Rule data: Firewall; Fields the Sigma rules expect: `Action`, `SourceIp`, `DestinationIp`, `DestinationPort`; Fields in the ThreatScope sample: Reads `action`, `src`, `dst`, `dport` key and value pairs
+
+Rule data: Windows process; Fields the Sigma rules expect: Sysmon `Image`, `ParentImage`, `CommandLine`, `Computer`, `User`; Fields in the ThreatScope sample: Not in the general `process.log`; use the Sysmon field map in the real data guide
 
 Compare with the sample test
 
 Run `python -m threatscope.evaluate` to see the Python rule counts. The table compares those counts with the Sigma rules on the same saved sample logs.
 
-| Sigma rule | What is in the sample | Sigma result | Python result | What this shows |
-|---|---|---:|---:|---|
-| `threatscope_linux_ssh_brute_force` | 16 failed SSH sign-ins from `203.0.113.9` in 75 seconds | 1 source IP group with at least 8 events in 2 minutes | 1 `brute_force_login` alert | Same count on this sample |
-| `threatscope_firewall_port_scan` | 28 denied ports from `198.51.100.7` in 28 seconds | 1 source IP group with at least 15 different ports in 1 minute | 1 `port_scan` alert | Same count on this sample |
-| `threatscope_scan_then_bruteforce` | The scan and login attack use different IP addresses | 0 linked attack sequences | 0 linked alerts | Both miss the link on this sample |
-| `threatscope_windows_suspicious_process` | The sample uses a custom text format, not Sysmon | Not checked | Python alerts are counted separately | This sample does not fit this rule |
+Sigma rule: `threatscope_linux_ssh_brute_force`; What is in the sample: 16 failed SSH sign-ins from `203.0.113.9` in 75 seconds; Sigma result: 1 source IP group with at least 8 events in 2 minutes; Python result: 1 `brute_force_login` alert; What this shows: Same count on this sample
+
+Sigma rule: `threatscope_firewall_port_scan`; What is in the sample: 28 denied ports from `198.51.100.7` in 28 seconds; Sigma result: 1 source IP group with at least 15 different ports in 1 minute; Python result: 1 `port_scan` alert; What this shows: Same count on this sample
+
+Sigma rule: `threatscope_scan_then_bruteforce`; What is in the sample: The scan and login attack use different IP addresses; Sigma result: 0 linked attack sequences; Python result: 0 linked alerts; What this shows: Both miss the link on this sample
+
+Sigma rule: `threatscope_windows_suspicious_process`; What is in the sample: The sample uses a custom text format, not Sysmon; Sigma result: Not checked; Python result: Python alerts are counted separately; What this shows: This sample does not fit this rule
 
 These results only compare the saved sample logs. They do not show that the rules give the same results on all logs. Some SIEM tools group time in fixed blocks, while ThreatScope checks a moving time range. Some tools do not support `temporal_ordered` or `value_count`. The Python port scan rule counts different ports across all firewall actions. The Sigma rule here counts only denied connections. These choices can lead to different results.
 
